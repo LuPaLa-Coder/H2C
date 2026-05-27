@@ -1,0 +1,38 @@
+# Test 2 — Calculator CLI (H2C v1.1)
+# Prompt umano: "Crea un calculator CLI in Python con +, -, *, /. Aggiungi test e poi sistema un bug sulla divisione per zero."
+
+[ARCH:PLAN]
+id:t2|fw:python3|lib:argparse|pattern:cli|tools:[python,pytest]|struct:[calc.py,test_calc.py]|notes:[stdlib_only,unit_tests]
+
+[BUILD:EXEC]
+id:t2.1|target:calc.py|desc:parse_args_and_dispatch_ops
+
+[BUILD:DONE]
+id:t2.1|diff:[calc.py~1]|rev:1|notes:[argparse,4_ops]
+
+[BUILD:EXEC]
+id:t2.2|target:test_calc.py|desc:unit_tests_4_ops|after:t2.1
+
+[BUILD:DONE]
+id:t2.2|diff:[test_calc.py~1]|rev:1|notes:[6_tests]
+
+[TEST:RUN]
+id:t2.2|cmd:pytest test_calc.py
+
+[TEST:FAIL]
+id:t2.2|error:ZeroDivisionError_in_test_div_by_zero|fail_count:1|pass_count:5
+
+[BUILD:FIX]
+id:t2.3|target:calc.py|base_rev:1|desc:guard_div_by_zero_raise_ValueError
+
+[BUILD:DONE]
+id:t2.3|diff:[calc.py~2]|rev:2|notes:[guard_added]
+
+[TEST:RUN]
+id:t2.2|cmd:pytest test_calc.py
+
+[TEST:PASS]
+id:t2.2|pass_count:6
+
+[ORCH:END]
+final:ok|est_token:118
