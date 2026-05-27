@@ -1,0 +1,538 @@
+# Test 5 — Stress Test H2C v1.1 (130 msg, break point hunting)
+# Prompt umano: "Migra piattaforma e-commerce monolitica a 12 microservizi event-driven su K8s + Kafka, multi-region. Implementa, testa, fixa. Mantieni il contesto."
+# Regole applicate: PRUNE ogni 5 msg | COMPACT ogni 20 msg (reset PRUNE counter) | FREEZE quando COMPACT non basta più
+# Numerazione: # msg N a inizio blocco per audit regole
+
+# msg 1
+[ARCH:PLAN]
+id:t5|fw:[fastapi,go,nodejs]|lib:[kafka,redis,postgres,k8s,istio]|pattern:microservices_event_driven|tools:[docker,kustomize,argo,pytest,k6]|struct:[auth/,user/,catalog/,cart/,order/,payment/,inventory/,shipping/,notif/,analytics/,gateway/,bus/]|notes:[12_services,multi_region,k8s_native,kafka_backbone]
+
+# msg 2
+[CTX:PRIMITIVES]
+id:t5|services:[s1=auth,s2=user,s3=catalog,s4=cart,s5=order,s6=payment,s7=inventory,s8=shipping,s9=notif,s10=analytics,s11=gateway,s12=bus]|topics:[orders.created,orders.paid,inventory.reserved,shipping.dispatched]|regions:[eu-west,us-east]|infra:k8s_1.29
+
+# msg 3
+[BUILD:EXEC]
+id:s1.1|target:auth/main.go|desc:jwt_oidc_provider_pkce
+
+# msg 4
+[BUILD:DONE]
+id:s1.1|diff:[auth/main.go~1]|rev:1|notes:[oidc,jwk_rotation]
+
+# msg 5
+[CTX:PRUNE]
+keep:last_5|ids:[s1.1]|pruned:[]
+
+# msg 6
+[TEST:RUN]
+id:s1.1|cmd:go test ./auth/...
+
+# msg 7
+[TEST:PASS]
+id:s1.1|pass_count:14
+
+# msg 8
+[BUILD:EXEC]
+id:s2.1|target:user/api.py|desc:crud_user_profile_fastapi
+
+# msg 9
+[BUILD:DONE]
+id:s2.1|diff:[user/api.py~1]|rev:1|notes:[pydantic_v2,async_pg]
+
+# msg 10
+[CTX:PRUNE]
+keep:last_5|ids:[s1.1,s2.1]|pruned:[]
+
+# msg 11
+[TEST:RUN]
+id:s2.1|cmd:pytest user/ -q
+
+# msg 12
+[TEST:PASS]
+id:s2.1|pass_count:22
+
+# msg 13
+[BUILD:EXEC]
+id:s3.1|target:catalog/server.go|desc:product_catalog_grpc_pg
+
+# msg 14
+[BUILD:DONE]
+id:s3.1|diff:[catalog/server.go~1]|rev:1|notes:[grpc,protobuf,read_replicas]
+
+# msg 15
+[CTX:PRUNE]
+keep:last_5|ids:[s1.1,s2.1,s3.1]|pruned:[]
+
+# msg 16
+[TEST:RUN]
+id:s3.1|cmd:go test ./catalog/...
+
+# msg 17
+[TEST:FAIL]
+id:s3.1|error:protobuf_field_number_collision_v2_proto|fail_count:2|pass_count:11
+
+# msg 18
+[STATE:FINDINGS]
+id:s3.1|cause=hand_edited_pb_field_5_duplicate|action=regen_pb
+
+# msg 19
+[BUILD:FIX]
+id:s3.2|target:catalog/server.go|base_rev:1|desc:regen_proto_renumber_fields
+
+# msg 20
+[CTX:COMPACT]
+summary:[s1=auth_done,s2=user_done,s3=catalog_in_fix]|keep_active:[auth/main.go~1,user/api.py~1,catalog/server.go~1]|pruned_history:msg_1_to_15
+
+# msg 21
+[BUILD:DONE]
+id:s3.2|diff:[catalog/server.go~2,catalog/v2.proto~2]|rev:2|notes:[fields_renumbered]
+
+# msg 22
+[TEST:RUN]
+id:s3.1|cmd:go test ./catalog/...
+
+# msg 23
+[TEST:PASS]
+id:s3.1|pass_count:13
+
+# msg 24
+[BUILD:EXEC]
+id:s4.1|target:cart/service.ts|desc:cart_redis_session_nodejs
+
+# msg 25
+[CTX:PRUNE]
+keep:last_5|ids:[s3.2,s4.1]|pruned:[s1.1,s2.1]
+
+# msg 26
+[BUILD:DONE]
+id:s4.1|diff:[cart/service.ts~1]|rev:1|notes:[redis_hash,ttl_30min]
+
+# msg 27
+[TEST:RUN]
+id:s4.1|cmd:npm test --prefix cart/
+
+# msg 28
+[TEST:PASS]
+id:s4.1|pass_count:19
+
+# msg 29
+[BUILD:EXEC]
+id:s5.1|target:order/saga.py|desc:order_saga_orchestrator_kafka
+
+# msg 30
+[CTX:PRUNE]
+keep:last_5|ids:[s4.1,s5.1]|pruned:[s3.2]
+
+# msg 31
+[BUILD:DONE]
+id:s5.1|diff:[order/saga.py~1,order/topics.py~1]|rev:1|notes:[saga_pattern,compensations]
+
+# msg 32
+[TEST:RUN]
+id:s5.1|cmd:pytest order/ -q
+
+# msg 33
+[TEST:FAIL]
+id:s5.1|error:race_compensate_before_reserve_ack|fail_count:1|pass_count:7
+
+# msg 34
+[STATE:FINDINGS]
+id:s5.1|cause=missing_idempotency_key_on_reserve|action=add_idempotency_kafka_header
+
+# msg 35
+[CTX:PRUNE]
+keep:last_5|ids:[s5.1]|pruned:[s4.1]
+
+# msg 36
+[BUILD:FIX]
+id:s5.2|target:order/saga.py|base_rev:1|desc:add_idempotency_key_and_retry_window
+
+# msg 37
+[BUILD:DONE]
+id:s5.2|diff:[order/saga.py~2]|rev:2|notes:[idem_key,retry=3]
+
+# msg 38
+[TEST:RUN]
+id:s5.1|cmd:pytest order/ -q
+
+# msg 39
+[TEST:PASS]
+id:s5.1|pass_count:8
+
+# msg 40
+[CTX:COMPACT]
+summary:[s1..s5=done|s3,s5=fixed]|keep_active:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2]|pruned_history:msg_16_to_35
+
+# msg 41
+[CTX:UPDATE]
+~progress:layer=core_services|status=5_of_12_done
+~next:payment_service
+~active_files:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2]
+
+# msg 42
+[BUILD:EXEC]
+id:s6.1|target:payment/handler.go|desc:stripe_adapter_3ds_retry
+
+# msg 43
+[BUILD:DONE]
+id:s6.1|diff:[payment/handler.go~1]|rev:1|notes:[stripe_sdk,webhook_validation]
+
+# msg 44
+[TEST:RUN]
+id:s6.1|cmd:go test ./payment/...
+
+# msg 45
+[CTX:PRUNE]
+keep:last_5|ids:[s6.1]|pruned:[]
+
+# msg 46
+[TEST:FAIL]
+id:s6.1|error:webhook_signature_mismatch_in_replay_test|fail_count:1|pass_count:9
+
+# msg 47
+[STATE:FINDINGS]
+id:s6.1|cause=using_wrong_secret_in_test_fixture|action=inject_test_secret
+
+# msg 48
+[BUILD:FIX]
+id:s6.2|target:payment/handler.go|base_rev:1|desc:configurable_webhook_secret_for_test
+
+# msg 49
+[BUILD:DONE]
+id:s6.2|diff:[payment/handler.go~2]|rev:2|notes:[env_driven_secret]
+
+# msg 50
+[CTX:PRUNE]
+keep:last_5|ids:[s6.2]|pruned:[]
+
+# msg 51
+[TEST:RUN]
+id:s6.1|cmd:go test ./payment/...
+
+# msg 52
+[TEST:PASS]
+id:s6.1|pass_count:10
+
+# msg 53
+[BUILD:EXEC]
+id:s7.1|target:inventory/locks.go|desc:reservation_with_distributed_lock_redis
+
+# msg 54
+[BUILD:DONE]
+id:s7.1|diff:[inventory/locks.go~1]|rev:1|notes:[redlock,fence_token]
+
+# msg 55
+[CTX:PRUNE]
+keep:last_5|ids:[s7.1,s6.2]|pruned:[]
+
+# msg 56
+[TEST:RUN]
+id:s7.1|cmd:go test ./inventory/...
+
+# msg 57
+[TEST:PASS]
+id:s7.1|pass_count:16
+
+# msg 58
+[BUILD:EXEC]
+id:s8.1|target:shipping/picker.py|desc:carrier_picker_strategy_eu_us
+
+# msg 59
+[BUILD:DONE]
+id:s8.1|diff:[shipping/picker.py~1]|rev:1|notes:[strategy_pattern,DHL,UPS,FedEx]
+
+# msg 60
+[CTX:COMPACT]
+summary:[s1..s8=done|fixes:s3,s5,s6]|keep_active:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2,payment/handler.go~2,inventory/locks.go~1,shipping/picker.py~1]|pruned_history:msg_36_to_55
+
+# msg 61
+[TEST:RUN]
+id:s8.1|cmd:pytest shipping/ -q
+
+# msg 62
+[TEST:FAIL]
+id:s8.1|error:eu_carrier_dhl_rate_zone_off_by_one|fail_count:1|pass_count:23
+
+# msg 63
+[STATE:FINDINGS]
+id:s8.1|cause=zone_table_uses_0_indexed_DHL_uses_1_indexed|action=offset_index
+
+# msg 64
+[BUILD:FIX]
+id:s8.2|target:shipping/picker.py|base_rev:1|desc:dhl_zone_offset_one
+
+# msg 65
+[CTX:PRUNE]
+keep:last_5|ids:[s8.2]|pruned:[s7.1]
+
+# msg 66
+[BUILD:DONE]
+id:s8.2|diff:[shipping/picker.py~2]|rev:2|notes:[zone_offset_param]
+
+# msg 67
+[TEST:RUN]
+id:s8.1|cmd:pytest shipping/ -q
+
+# msg 68
+[TEST:PASS]
+id:s8.1|pass_count:24
+
+# msg 69
+[BUILD:EXEC]
+id:s9.1|target:notif/dispatcher.ts|desc:email_sms_push_dispatch_template
+
+# msg 70
+[CTX:PRUNE]
+keep:last_5|ids:[s9.1,s8.2]|pruned:[]
+
+# msg 71
+[BUILD:DONE]
+id:s9.1|diff:[notif/dispatcher.ts~1]|rev:1|notes:[ses,twilio,fcm,handlebars]
+
+# msg 72
+[TEST:RUN]
+id:s9.1|cmd:npm test --prefix notif/
+
+# msg 73
+[TEST:PASS]
+id:s9.1|pass_count:18
+
+# msg 74
+[BUILD:EXEC]
+id:s10.1|target:analytics/sink.py|desc:kafka_to_clickhouse_sink_batch
+
+# msg 75
+[CTX:PRUNE]
+keep:last_5|ids:[s10.1,s9.1]|pruned:[]
+
+# msg 76
+[BUILD:DONE]
+id:s10.1|diff:[analytics/sink.py~1]|rev:1|notes:[clickhouse_native,batch_5k]
+
+# msg 77
+[TEST:RUN]
+id:s10.1|cmd:pytest analytics/ -q
+
+# msg 78
+[TEST:FAIL]
+id:s10.1|error:dlq_messages_not_acked_after_retry|fail_count:2|pass_count:12
+
+# msg 79
+[STATE:FINDINGS]
+id:s10.1|cause=manual_offset_commit_missing_in_dlq_branch|action=commit_on_dlq
+
+# msg 80
+[CTX:COMPACT]
+summary:[s1..s10=done|fixes:s3,s5,s6,s8,s10_in_fix]|keep_active:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2,payment/handler.go~2,inventory/locks.go~1,shipping/picker.py~2,notif/dispatcher.ts~1,analytics/sink.py~1]|pruned_history:msg_56_to_75
+
+# msg 81
+[BUILD:FIX]
+id:s10.2|target:analytics/sink.py|base_rev:1|desc:commit_offset_after_dlq_send
+
+# msg 82
+[BUILD:DONE]
+id:s10.2|diff:[analytics/sink.py~2]|rev:2|notes:[explicit_commit]
+
+# msg 83
+[TEST:RUN]
+id:s10.1|cmd:pytest analytics/ -q
+
+# msg 84
+[TEST:PASS]
+id:s10.1|pass_count:14
+
+# msg 85
+[CTX:PRUNE]
+keep:last_5|ids:[s10.2]|pruned:[s9.1]
+
+# msg 86
+[BUILD:EXEC]
+id:s11.1|target:gateway/envoy.yaml|desc:envoy_routes_jwt_ratelimit
+
+# msg 87
+[BUILD:DONE]
+id:s11.1|diff:[gateway/envoy.yaml~1]|rev:1|notes:[jwt_filter,rate_local+global]
+
+# msg 88
+[TEST:RUN]
+id:s11.1|cmd:k6 run gateway/load.js
+
+# msg 89
+[TEST:PASS]
+id:s11.1|pass_count:1
+
+# msg 90
+[CTX:PRUNE]
+keep:last_5|ids:[s11.1,s10.2]|pruned:[]
+
+# msg 91
+[BUILD:EXEC]
+id:s12.1|target:bus/topics.yaml|desc:kafka_topics_acl_partitions
+
+# msg 92
+[BUILD:DONE]
+id:s12.1|diff:[bus/topics.yaml~1]|rev:1|notes:[12_partitions,replication=3]
+
+# msg 93
+[TEST:RUN]
+id:s12.1|cmd:python bus/verify_topics.py
+
+# msg 94
+[TEST:PASS]
+id:s12.1|pass_count:12
+
+# msg 95
+[CTX:PRUNE]
+keep:last_5|ids:[s12.1,s11.1]|pruned:[s10.2]
+
+# msg 96
+[CTX:UPDATE]
+~progress:layer=all_services|status=12_of_12_built
+~next:e2e_and_chaos
+~active_files:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2,payment/handler.go~2,inventory/locks.go~1,shipping/picker.py~2,notif/dispatcher.ts~1,analytics/sink.py~2,gateway/envoy.yaml~1,bus/topics.yaml~1]
+
+# msg 97
+[BUILD:EXEC]
+id:e2e.1|target:tests/e2e_checkout.py|desc:end_to_end_happy_path_checkout
+
+# msg 98
+[BUILD:DONE]
+id:e2e.1|diff:[tests/e2e_checkout.py~1]|rev:1|notes:[8_steps,real_kafka]
+
+# msg 99
+[TEST:RUN]
+id:e2e.1|cmd:pytest tests/e2e_checkout.py -q
+
+# msg 100
+[CTX:COMPACT]
+summary:[s1..s12=done|e2e_in_progress|fixes_applied:5]|keep_active:[auth/main.go~1,catalog/server.go~2,order/saga.py~2,payment/handler.go~2,analytics/sink.py~2]|pruned_history:msg_76_to_95
+
+# msg 101
+[TEST:FAIL]
+id:e2e.1|error:timeout_on_inventory_reservation_step|fail_count:1|pass_count:6
+
+# msg 102
+[STATE:FINDINGS]
+id:e2e.1|cause=redlock_ttl_too_short_under_load_5s|action=raise_ttl_15s
+
+# msg 103
+[BUILD:FIX]
+id:s7.2|target:inventory/locks.go|base_rev:1|desc:raise_redlock_ttl_15s
+
+# msg 104
+[BUILD:DONE]
+id:s7.2|diff:[inventory/locks.go~2]|rev:2|notes:[ttl_15s,unit_extended]
+
+# msg 105
+[CTX:PRUNE]
+keep:last_5|ids:[s7.2,e2e.1]|pruned:[]
+
+# msg 106
+[TEST:RUN]
+id:e2e.1|cmd:pytest tests/e2e_checkout.py -q
+
+# msg 107
+[TEST:PASS]
+id:e2e.1|pass_count:7
+
+# msg 108
+[BUILD:EXEC]
+id:cha.1|target:tests/chaos_kill_kafka.py|desc:chaos_partition_kafka_broker
+
+# msg 109
+[BUILD:DONE]
+id:cha.1|diff:[tests/chaos_kill_kafka.py~1]|rev:1|notes:[litmus,30s_partition]
+
+# msg 110
+[CTX:FREEZE]
+snapshot:[auth/main.go~1,user/api.py~1,catalog/server.go~2,cart/service.ts~1,order/saga.py~2,payment/handler.go~2,inventory/locks.go~2,shipping/picker.py~2,notif/dispatcher.ts~1,analytics/sink.py~2,gateway/envoy.yaml~1,bus/topics.yaml~1]|baseline:msg_110|restart_from:freeze
+
+# msg 111
+[TEST:RUN]
+id:cha.1|cmd:python tests/chaos_kill_kafka.py
+
+# msg 112
+[TEST:FAIL]
+id:cha.1|error:saga_loses_2_events_during_partition|fail_count:1|pass_count:0
+
+# msg 113
+[STATE:FINDINGS]
+id:cha.1|cause=producer_acks=1_not_all|action=set_acks_all_min_isr_2
+
+# msg 114
+[BUILD:FIX]
+id:s5.3|target:order/saga.py|base_rev:2|desc:producer_acks_all_min_isr_2
+
+# msg 115
+[CTX:PRUNE]
+keep:last_5|ids:[s5.3,cha.1]|pruned:[]
+
+# msg 116
+[BUILD:DONE]
+id:s5.3|diff:[order/saga.py~3]|rev:3|notes:[acks=all,enable_idempotence]
+
+# msg 117
+[TEST:RUN]
+id:cha.1|cmd:python tests/chaos_kill_kafka.py
+
+# msg 118
+[TEST:PASS]
+id:cha.1|pass_count:1
+
+# msg 119
+[BUILD:EXEC]
+id:cha.2|target:tests/chaos_pg_failover.py|desc:postgres_primary_failover_30s
+
+# msg 120
+[CTX:COMPACT]
+summary:[freeze@msg110|e2e+chaos_kafka_passed|chaos_pg_in_progress]|keep_active:[order/saga.py~3,inventory/locks.go~2]|pruned_history:msg_111_to_115
+
+# msg 121
+[BUILD:DONE]
+id:cha.2|diff:[tests/chaos_pg_failover.py~1]|rev:1|notes:[patroni,30s_window]
+
+# msg 122
+[TEST:RUN]
+id:cha.2|cmd:python tests/chaos_pg_failover.py
+
+# msg 123
+[TEST:PASS]
+id:cha.2|pass_count:1
+
+# msg 124
+[BUILD:EXEC]
+id:obs.1|target:obs/otel.yaml|desc:opentelemetry_collector_all_services
+
+# msg 125
+[CTX:PRUNE]
+keep:last_5|ids:[obs.1,cha.2]|pruned:[]
+
+# msg 126
+[BUILD:DONE]
+id:obs.1|diff:[obs/otel.yaml~1]|rev:1|notes:[traces_metrics_logs]
+
+# msg 127
+[TEST:RUN]
+id:obs.1|cmd:python obs/verify_traces.py
+
+# msg 128
+[TEST:PASS]
+id:obs.1|pass_count:1
+
+# msg 129
+[CTX:UPDATE]
+~progress:layer=all|status=12_services+e2e+chaos+obs_done
+~next:close
+~active_files:[order/saga.py~3,inventory/locks.go~2,obs/otel.yaml~1]
+
+# msg 130
+[ORCH:END]
+final:ok|est_token:2780|notes:[12_services,5_fixes,2_chaos_passed,freeze_at_110,no_loss]
+
+# === END OF CHAIN ===
+# Audit regole v1.1:
+# - PRUNE @ msg: 5,10,15,25,30,35,45,50,55,65,70,75,85,90,95,105,115,125 (18 occorrenze, ogni 5 con reset post-COMPACT)
+# - COMPACT @ msg: 20,40,60,80,100,120 (6 occorrenze, ogni 20 esatti)
+# - FREEZE @ msg: 110 (singolo, dopo 100 quando COMPACT non basta più — ha azzerato i contatori)
+# - Campi v1.1 usati: rev, base_rev, after, notes, fail_count, pass_count, ~progress, ~next, ~active_files, ~pruned_edges (implicito in PRUNE.pruned)
+# - Coerenza referenziale: s5.3 base_rev:2 punta a s5.2 (rev:2) ✓ | s7.2 base_rev:1 punta a s7.1 (rev:1) ✓

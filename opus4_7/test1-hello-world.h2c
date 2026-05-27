@@ -1,0 +1,20 @@
+# Test 1 — Hello World (H2C v1.1)
+# Prompt umano: "Crea un Hello World in Python"
+
+[ARCH:PLAN]
+id:t1|fw:python3|lib:none|pattern:script|tools:[python]|struct:[main.py]|notes:[stdlib_only]
+
+[BUILD:EXEC]
+id:t1.1|target:main.py|desc:print_hello_world
+
+[BUILD:DONE]
+id:t1.1|diff:[main.py~1]|rev:1
+
+[TEST:RUN]
+id:t1.1|cmd:python main.py
+
+[TEST:PASS]
+id:t1.1|pass_count:1
+
+[ORCH:END]
+final:ok|est_token:42
