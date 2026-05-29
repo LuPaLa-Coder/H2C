@@ -24,9 +24,9 @@ MCP definisce COME trasportare
 
 ```
 ┌─────────────┐         MCP Tool Call         ┌─────────────┐
-│  Client MCP  │ ─── [H2C block as content] ──→│  Server MCP │
-│  (Agente A)   │ ←── [H2C block as result] ───│  (Agente B)  │
-└─────────────┘                                └─────────────┘
+│  Client MCP │ ─── [H2C block as content] ──→│  Server MCP │
+│  (Agente A) │ ←── [H2C block as result ] ───│  (Agente B) │
+└─────────────┘                               └─────────────┘
 ```
 
 ### Schema Integrazione
@@ -66,9 +66,9 @@ MCP definisce COME trasportare
 **Ruolo:** H2C come formato output dei nodi e schema stato del grafo.
 
 ```
-┌──────────┐    H2C Block    ┌──────────┐    H2C Block    ┌──────────┐
-│ Node ARCH │ ──────────────→│ Node ORCH│ ──────────────→│ Node BLD  │
-└──────────┘                └──────────┘                └──────────┘
+┌───────────┐    H2C Block   ┌──────────┐    H2C Block   ┌──────────┐
+│ Node ARCH │ ──────────────→│ Node ORCH│ ──────────────→│ Node BLD │
+└───────────┘                └──────────┘                └──────────┘
        │                          │                           │
        └──────────────────────────┴───────────────────────────┘
                               State

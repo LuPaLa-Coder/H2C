@@ -10,20 +10,20 @@
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                   STRATO APPLICATIVO                      │
+│                   STRATO APPLICATIVO                     │
 │  Skills agente, logica di orchestrazione, routing        │
 │  skills/h2c_architect.md, h2c_orchestrator.md, ...       │
 ├──────────────────────────────────────────────────────────┤
-│                   STRATO SEMANTICO                        │
+│                   STRATO SEMANTICO                       │
 │  Grammatica blocchi H2C, opcode, AST, tipo/subtipo       │
 │  SPEC.md, docs/specification/grammar.md                  │
 ├──────────────────────────────────────────────────────────┤
-│              STRATO ORCHESTRAZIONE                        │
+│              STRATO ORCHESTRAZIONE                       │
 │  cycle_id, retry_n, PRUNE/COMPACT/FREEZE,                │
 │  tracciamento stato, recovery errori                     │
 │  docs/architecture/context-lifecycle.md                  │
 ├──────────────────────────────────────────────────────────┤
-│                   STRATO TRASPORTO                        │
+│                   STRATO TRASPORTO                       │
 │  MCP, stdin/stdout, HTTP, WebSocket                      │
 │  Serializzazione/deserializzazione blocchi               │
 │  docs/ecosystem/integrations.md                          │
@@ -37,13 +37,13 @@
 H2C definisce un modello a 4 agenti:
 
 ```
-┌──────────┐    ┌──────────────┐    ┌──────────┐
+┌───────────┐    ┌──────────────┐    ┌───────────┐
 │ Architetto│───→│ Orchestratore│───→│  Builder  │
-└──────────┘    └──────────────┘    └──────────┘
+└───────────┘    └──────────────┘    └───────────┘
                       │                    │
                       │                    ▼
                       │              ┌──────────┐
-                      │              │  Tester   │
+                      │              │  Tester  │
                       │              └──────────┘
                       │                    │
                       ▼                    │

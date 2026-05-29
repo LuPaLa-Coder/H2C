@@ -29,25 +29,25 @@ Il compilatore H2C trasforma blocchi H2C in altri formati (linguaggio naturale, 
 H2C Input
    │
    ▼
-┌─────────────┐
+┌──────────────┐
 │   Parsing    │  → AST (docs/parser/architecture.md)
-└─────────────┘
+└──────────────┘
    │
    ▼
-┌─────────────┐
+┌──────────────┐
 │  Validazione │  → Controllo campi REQUIRED, tipi, vincoli
-└─────────────┘
+└──────────────┘
    │
    ▼
-┌─────────────┐
+┌──────────────┐
 │  Analisi     │  → Risoluzione riferimenti (cycle_id, after)
 │  Semantica   │  → Ricostruzione stato e contesto
-└─────────────┘
+└──────────────┘
    │
    ▼
-┌─────────────┐
+┌──────────────┐
 │  Codegen     │  → Generazione output nel formato target
-└─────────────┘
+└──────────────┘
    │
    ▼
 Output
@@ -190,8 +190,8 @@ VALIDATOR-12: Nessun testo fuori dai campi
 
 ```
 ┌──────────────┐
-│  Validatore   │
-│  H2C          │
+│  Validatore  │
+│  H2C         │
 └──────┬───────┘
        │
        ├── Validatore Sintattico

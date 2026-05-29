@@ -36,12 +36,6 @@ docs/
 │   └── pipeline.md            # Pipeline compilatore/transpiler H2C
 ├── agent-runtime/
 │   └── protocol.md            # Specifica runtime agenti
-├── seo/
-│   └── keyword-strategy.md    # Strategia SEO indicizzazione
-├── positioning/
-│   └── README.md              # Posizionamento protocollo
-├── content-strategy/
-│   └── titles.md              # Titoli contenuti strategici
 ├── risks/
 │   └── analysis.md            # Analisi rischi SWOT
 └── CONTRIBUTING.md            # Linee guida contributi
