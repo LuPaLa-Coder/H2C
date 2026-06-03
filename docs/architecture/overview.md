@@ -1,44 +1,44 @@
-# Architettura H2C Protocol
+# H2C Protocol Architecture
 
-**Versione:** 1.0
-**Stato:** DEFINITIVO
-**Scopo:** Panoramica architetturale del protocollo H2C — modello a strati, componenti e flussi.
+**Version:** 1.0
+**Status:** DEFINITIVE
+**Purpose:** Architectural overview of the H2C protocol — layered model, components, and flows.
 
 ---
 
-## 1. Modello a Strati
+## 1. Layered Model
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                   STRATO APPLICATIVO                     │
-│  Skills agente, logica di orchestrazione, routing        │
-│  skills/h2c_architect.md, h2c_orchestrator.md, ...       │
+│                   APPLICATION LAYER                      │
+│  Agent skills, orchestration logic, routing              │
+│  skills/h2c_architect.md, h2c_orchestrator.md, ...      │
 ├──────────────────────────────────────────────────────────┤
-│                   STRATO SEMANTICO                       │
-│  Grammatica blocchi H2C, opcode, AST, tipo/subtipo       │
+│                   SEMANTIC LAYER                         │
+│  H2C block grammar, opcodes, AST, type/subtype          │
 │  SPEC.md, docs/specification/grammar.md                  │
 ├──────────────────────────────────────────────────────────┤
-│              STRATO ORCHESTRAZIONE                       │
-│  cycle_id, retry_n, PRUNE/COMPACT/FREEZE,                │
-│  tracciamento stato, recovery errori                     │
+│              ORCHESTRATION LAYER                         │
+│  cycle_id, retry_n, PRUNE/COMPACT/FREEZE,               │
+│  state tracking, error recovery                          │
 │  docs/architecture/context-lifecycle.md                  │
 ├──────────────────────────────────────────────────────────┤
-│                   STRATO TRASPORTO                       │
-│  MCP, stdin/stdout, HTTP, WebSocket                      │
-│  Serializzazione/deserializzazione blocchi               │
+│                   TRANSPORT LAYER                        │
+│  MCP, stdin/stdout, HTTP, WebSocket                     │
+│  Block serialization/deserialization                    │
 │  docs/ecosystem/integrations.md                          │
 └──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Pipeline Agente
+## 2. Agent Pipeline
 
-H2C definisce un modello a 4 agenti:
+H2C defines a 4-agent model:
 
 ```
 ┌───────────┐    ┌──────────────┐    ┌───────────┐
-│ Architetto│───→│ Orchestratore│───→│  Builder  │
+│ Architect │───→│ Orchestrator │───→│  Builder  │
 └───────────┘    └──────────────┘    └───────────┘
                       │                    │
                       │                    ▼
@@ -47,53 +47,53 @@ H2C definisce un modello a 4 agenti:
                       │              └──────────┘
                       │                    │
                       ▼                    │
-               [ORCH:END] ◄────────────────┘
+                [ORCH:END] ◄────────────────┘
 ```
 
-### Ruoli
+### Roles
 
-| Agente | Input | Output | Stato |
-|--------|-------|--------|-------|
-| **Architetto** | Prompt umano | ARCH:PLAN + STATE:ACK | INIT → PLANNED |
-| **Orchestratore** | Blocchi agenti | Routing, CTX, ORCH:END | Qualsiasi → Qualsiasi |
+| Agent | Input | Output | State |
+|-------|-------|--------|-------|
+| **Architect** | Human prompt | ARCH:PLAN + STATE:ACK | INIT → PLANNED |
+| **Orchestrator** | Agent blocks | Routing, CTX, ORCH:END | Any → Any |
 | **Builder** | BUILD:EXEC / FIX | BUILD:DONE | BUILDING → BUILT |
 | **Tester** | TEST:RUN | TEST:PASS / FAIL | TESTING → TEST_PASS/FAIL |
 
 ---
 
-## 3. Ciclo di Vita Messaggio
+## 3. Message Lifecycle
 
 ```
-1. Ricezione blocco da strato trasporto
-2. Parsing blocco (→ validazione EBNF)
-3. Risoluzione tipo/subtipo (→ dispatcher)
-4. Esecuzione azione (→ logica agente)
-5. Transizione stato (→ macchina stati)
-6. Emissione blocco su strato trasporto
-7. Gestione contesto (PRUNE/COMPACT/FREEZE)
+1. Block received from transport layer
+2. Block parsing (→ EBNF validation)
+3. Type/subtype resolution (→ dispatcher)
+4. Action execution (→ agent logic)
+5. State transition (→ state machine)
+6. Block emission on transport layer
+7. Context management (PRUNE/COMPACT/FREEZE)
 ```
 
 ---
 
-## 4. Gestione Errori
+## 4. Error Handling
 
-| Errore | Comportamento |
-|--------|---------------|
-| Blocco malformato | Scartato, ORCH:END con errore |
+| Error | Behavior |
+|-------|----------|
+| Malformed block | Discarded, ORCH:END with error |
 | retry_n > 3 | ORCH:END final:error |
-| cycle_id non trovato | Warning, inferenza da contesto |
-| Campo mancante REQUIRED | Blocco invalido |
-| Test fallito senza FIX | Ciclo non gestito, ORCH:END |
+| cycle_id not found | Warning, context inference |
+| Missing REQUIRED field | Invalid block |
+| Test failed without FIX | Unhandled cycle, ORCH:END |
 
 ---
 
-## 5. Metriche di Sistema
+## 5. System Metrics
 
-| Metrica | Fonte | Scopo |
-|---------|-------|-------|
-| msg_counter | Contatore globale | Trigger PRUNE/COMPACT/FREEZE |
-| retry_n | Per cycle_id | Limite tentativi |
-| fail_count | Per cycle_id | Tracciamento errori |
-| pass_count | Per cycle_id | Tracciamento successi |
-| est_token | Self-report in ORCH:END | Stima costo |
-| token_risparmio | Calcolato vs NL | Benchmark efficienza |
+| Metric | Source | Purpose |
+|--------|--------|---------|
+| msg_counter | Global counter | PRUNE/COMPACT/FREEZE trigger |
+| retry_n | Per cycle_id | Attempt limit |
+| fail_count | Per cycle_id | Error tracking |
+| pass_count | Per cycle_id | Success tracking |
+| est_token | Self-report in ORCH:END | Cost estimation |
+| token_savings | Calculated vs NL | Efficiency benchmark |

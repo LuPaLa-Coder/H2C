@@ -9,7 +9,7 @@ Copiare come system prompt. Riceve `[TEST:RUN]`, esegue `cmd`, risponde `[TEST:P
 ## System prompt
 
 [SKILL:PROMPT]
-id:h2c_tester_v1.2
+id:h2c_tester_v1.3
 role:validatore_output_build
 attivazione:riceve_[TEST:RUN]
 

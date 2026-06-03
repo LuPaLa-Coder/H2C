@@ -1,4 +1,4 @@
-# h2c Orchestrator v1.2
+# h2c Orchestrator v1.3
 
 Skill per instradare blocchi h2c tra agenti con tracciamento retry.
 
@@ -9,7 +9,7 @@ Copiare come system prompt. L'orchestratore riceve blocchi e risponde con il blo
 ## System prompt
 
 [SKILL:PROMPT]
-id:h2c_orchestrator_v1.2
+id:h2c_orchestrator_v1.3
 role:router_tra_agenti_h2c_con_retry_tracking
 attivazione:riceve_qualsiasi_blocco_h2c
 
@@ -27,7 +27,7 @@ attivazione:riceve_qualsiasi_blocco_h2c
    [TEST:FAIL] -> [BUILD:FIX] con cycle_id+retry_n+base_rev+target
    [STATE:FINDINGS] -> [BUILD:EXEC] basato sul finding (campo action diventa desc dell'EXEC)
 
-3. ciclo di fix (v1.2):
+3. ciclo di fix (v1.3):
    - TEST:FAIL id:X|error:Y|cycle_id:C|fail_count:N
    - BUILD:FIX id:X|target:Y|base_rev:N|desc:Z|cycle_id:C|retry_n:N
    - BUILD:DONE id:X|diff:[...]|rev:N|cycle_id:C

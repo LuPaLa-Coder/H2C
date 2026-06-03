@@ -55,9 +55,9 @@ Identicità semantica: 100%
 | tools:[weather:{current,forecast}] | “due operazioni: current e forecast” | Tools meteo |
 | struct:[…] | “struttura dei file…” | Struttura progetto |
 | deps:OpenWeatherMap | “consuma i dati di OpenWeatherMap” | OpenWeatherMap |
-| note:cache TTL 10min | “cache TTL 10 minuti” | Cache TTL |
-| note:rate-limit 60req/min | “rate limit 60 richieste/minuto” | Rate limit |
-| note:httpx async | “chiamate HTTP asincrone tramite httpx” | httpx async |
+| notes:[cache_TTL_10min] | “cache TTL 10 minuti” | Cache TTL |
+| notes:[rate-limit_60req-min] | “rate limit 60 richieste/minuto” | Rate limit |
+| notes:[httpx_async] | “chiamate HTTP asincrone tramite httpx” | httpx async |
 
 
 ### 🔍 Comparazione  ***Copilot***

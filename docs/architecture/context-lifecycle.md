@@ -1,56 +1,56 @@
-# Ciclo di Vita del Contesto H2C
+# H2C Context Lifecycle
 
-**Versione:** 1.2
-**Stato:** DEFINITIVO
-**Scopo:** Specificare il sistema di gestione del contesto — meccanismo PRUNE/COMPACT/FREEZE che abilita catene lunghe.
-
----
-
-## 1. Problema
-
-Le catene di agenti AI soffrono di saturazione della context window del modello. In linguaggio naturale, il degrado inizia dopo ~40 messaggi (crollo coerenza referenziale). H2C risolve con un sistema di gestione del contesto a tre livelli.
+**Version:** 1.3
+**Status:** DEFINITIVE
+**Purpose:** Specify the context management system — PRUNE/COMPACT/FREEZE mechanism enabling long chains.
 
 ---
 
-## 2. Triade di Gestione Contesto
+## 1. Problem
+
+AI agent chains suffer from model context window saturation. In natural language, degradation begins after ~40 messages (referential coherence collapse). H2C solves this with a three-tier context management system.
+
+---
+
+## 2. Context Management Triad
 
 ```
-Soglia     Messaggio     Azione
+Threshold   Message        Action
 ─────────────────────────────────────
-Ogni 5     CTX:PRUNE     Purgare messaggi non necessari
-Ogni 20    CTX:COMPACT   Compattare storia in riassunto
-~100       CTX:FREEZE    Congelare baseline, reset totale
+Every 5     CTX:PRUNE      Purge unnecessary messages
+Every 20    CTX:COMPACT    Compact history into summary
+~100        CTX:FREEZE     Freeze baseline, full reset
 ```
 
 ---
 
-## 3. PRUNE — Purging Locale
+## 3. PRUNE — Local Purging
 
-**Trigger:** Ogni 5 messaggi (contatore globale)
-**Scopo:** Rimuovere messaggi che non servono più alla finestra attiva
+**Trigger:** Every 5 messages (global counter)
+**Purpose:** Remove messages no longer needed in the active window
 
-### Regole di Pruning
+### Pruning Rules
 
-| Blocco | Condizione | Prunabile? |
-|--------|-----------|:----------:|
-| ARCH:PLAN | Esiste COMPACT successivo | Sì |
-| ARCH:PLAN | Ultimo, nessun COMPACT | NO |
-| BUILD:EXEC | BUILD:DONE corrispondente emesso | Sì |
-| BUILD:EXEC | BUILD:DONE NON ancora emesso | NO |
-| BUILD:FIX | cycle_id ancora aperto | NO |
-| BUILD:FIX | cycle_id chiuso (TEST:PASS) | Sì |
-| BUILD:DONE | Esiste COMPACT successivo | Sì |
-| TEST:RUN | Esito (PASS/FAIL) emesso | Sì |
-| TEST:RUN | Esito NON ancora emesso | NO |
-| TEST:PASS/FAIL | Esiste COMPACT successivo | Sì |
-| CTX:PRUNE | Dopo emissione | Sì (sempre) |
-| CTX:COMPACT | Più recente | NO |
-| CTX:COMPACT | Precedente | Sì |
-| CTX:UPDATE | Dopo COMPACT successivo | Sì |
-| STATE:ACK | Dopo primo blocco utile | Sì |
-| ORCH:END | Mai (è terminale) | NO |
+| Block | Condition | Prunable? |
+|-------|-----------|:---------:|
+| ARCH:PLAN | Subsequent COMPACT exists | Yes |
+| ARCH:PLAN | Latest, no COMPACT | NO |
+| BUILD:EXEC | Corresponding BUILD:DONE emitted | Yes |
+| BUILD:EXEC | BUILD:DONE NOT yet emitted | NO |
+| BUILD:FIX | cycle_id still open | NO |
+| BUILD:FIX | cycle_id closed (TEST:PASS) | Yes |
+| BUILD:DONE | Subsequent COMPACT exists | Yes |
+| TEST:RUN | Outcome (PASS/FAIL) emitted | Yes |
+| TEST:RUN | Outcome NOT yet emitted | NO |
+| TEST:PASS/FAIL | Subsequent COMPACT exists | Yes |
+| CTX:PRUNE | After emission | Yes (always) |
+| CTX:COMPACT | Most recent | NO |
+| CTX:COMPACT | Previous | Yes |
+| CTX:UPDATE | After subsequent COMPACT | Yes |
+| STATE:ACK | After first useful block | Yes |
+| ORCH:END | Never (terminal) | NO |
 
-### Esempio
+### Example
 ```
 [CTX:PRUNE]
 keep:[m5,m6,t2,f1]|pruned:[m1,m2,m3,m4,t1]
@@ -58,78 +58,78 @@ keep:[m5,m6,t2,f1]|pruned:[m1,m2,m3,m4,t1]
 
 ---
 
-## 4. COMPACT — Compattazione Globale
+## 4. COMPACT — Global Compaction
 
-**Trigger:** Ogni 20 messaggi
-**Scopo:** Riassumere la storia cumulativa in poche voci
+**Trigger:** Every 20 messages
+**Purpose:** Summarize cumulative history in few entries
 
-### Formato
+### Format
 ```
 [CTX:COMPACT]
-summary:[layer=auth|status=done, layer=db|status=done|files:[db.py~1], layer=api|status=in_progress]
+summary:[layer=auth,status=done,layer=db,status=done,files:[db.py~1],layer=api,status=in_progress]
 keep_active:[main.py~2,auth.py~1,db.py~1,api.py~1]
 pruned_history:msg_22_to_40|pass_count:12|fail_count:2
 ```
 
-### Effetti
-- Contatore PRUNE resettato
-- Storia precedente (msg 1-20) archiviata nel summary
-- File attivi mantenuti con revisione corrente
-- I contatori pass_count/fail_count sono cumulativi
+### Effects
+- PRUNE counter reset
+- Previous history (msg 1-20) archived in summary
+- Active files kept with current revision
+- pass_count/fail_count counters are cumulative
 
 ---
 
-## 5. FREEZE — Congelamento
+## 5. FREEZE — Freezing
 
-**Trigger:** ~100 messaggi (quando COMPACT non basta più)
-**Scopo:** Reset completo dei contatori, archiviazione storia
+**Trigger:** ~100 messages (when COMPACT is no longer sufficient)
+**Purpose:** Full counter reset, history archival
 
-### Formato
+### Format
 ```
 [CTX:FREEZE]
 snapshot:[main.py~2,auth.py~1,db.py~1,api.py~1,routes.py~1,crud.py~2]
 baseline:110
 ```
 
-### Effetti
-- Contatori PRUNE e COMPACT ripartono da zero
-- Storia precedente archiviata (non cancellata)
-- snapshot contiene tutti i file attivi con revisione
-- baseline = numero messaggio al freeze
+### Effects
+- PRUNE and COMPACT counters restart from zero
+- Previous history archived (not deleted)
+- snapshot contains all active files with revision
+- baseline = message number at freeze
 
 ---
 
-## 6. Diagramma Temporale
+## 6. Timeline Diagram
 
 ```
 Msg 0:   [ARCH:PLAN]
 Msg 1-4: BUILD/EXEC/DONE, TEST/PASS
-Msg 5:   [CTX:PRUNE]             ← primo prune
+Msg 5:   [CTX:PRUNE]             ← first prune
 Msg 6-9: BUILD/EXEC/DONE, TEST/PASS
 Msg 10:  [CTX:PRUNE]
 Msg 11-14: ...
 Msg 15:  [CTX:PRUNE]
 Msg 16-19: ...
-Msg 20:  [CTX:COMPACT]           ← reset contatore PRUNE
+Msg 20:  [CTX:COMPACT]           ← reset PRUNE counter
 Msg 21-24: ...
-Msg 25:  [CTX:PRUNE]             ← nuovo ciclo dopo COMPACT
+Msg 25:  [CTX:PRUNE]             ← new cycle after COMPACT
 ...
-Msg 100: [CTX:COMPACT] (ultimo)
+Msg 100: [CTX:COMPACT] (last)
 Msg 105: [CTX:PRUNE]
-Msg 110: [CTX:FREEZE]            ← freeze, reset totale
-Msg 111+: nuovo ciclo con contatori azzerati
+Msg 110: [CTX:FREEZE]            ← freeze, full reset
+Msg 111+: new cycle with reset counters
 ```
 
 ---
 
-## 7. Scalabilità Empirica
+## 7. Empirical Scalability
 
-| Configurazione | Max Messaggi | Fattore Limitante |
-|---------------|:-----------:|-------------------|
-| Nessun contesto | ~40 | Saturazione finestra |
-| Solo PRUNE | ~60 | Accumulo storia |
-| PRUNE + COMPACT | ~100 | Riassunti accumulati |
-| PRUNE + COMPACT + FREEZE | ~130+ | Modello (non protocollo) |
+| Configuration | Max Messages | Limiting Factor |
+|--------------|:-----------:|-----------------|
+| No context | ~40 | Window saturation |
+| PRUNE only | ~60 | History accumulation |
+| PRUNE + COMPACT | ~100 | Accumulated summaries |
+| PRUNE + COMPACT + FREEZE | ~130+ | Model (not protocol) |
 
-Dati validati su Claude Sonnet 4.6 (61 msg) e Opus 4.7 (130 msg).
-Vedi [docs/benchmarks/comparison.md](../benchmarks/comparison.md).
+Data validated on Claude Sonnet 4.6 (61 msgs) and Opus 4.7 (130 msgs).
+See [docs/benchmarks/comparison.md](../benchmarks/comparison.md).

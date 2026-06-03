@@ -1,122 +1,122 @@
-# Benchmark H2C — Confronto & Metodologia
+# H2C Benchmark — Comparison & Methodology
 
-**Versione:** 1.0
-**Stato:** SPERIMENTALE
-**Scopo:** Confrontare H2C con linguaggio naturale, JSON, YAML e MCP su metriche quantitative di efficienza comunicazione AI-to-AI.
-
----
-
-## 1. Metodologia
-
-### Setup di Test
-- **Modelli testati:** Claude Sonnet 4.6, Opus 4.7
-- **Scenari:** Hello World (semplice), Calculator CLI (medio), Clean Architecture (avanzato), RAG Pipeline (complesso), Stress 130 msg (estremo)
-- **Conteggio token:** H2C = caratteri / 3.2 (proxy realistico dato che il formato evita stop-words e markdown). NL = conteggio token via tiktoken (cl100k_base)
-- **Test riproducibili:** Tutti i file `.h2c` disponibili in [opus4_7/](../../opus4_7/)
-
-### Campione di Riferimento
-
-Prompt di esempio per API meteo Python/FastAPI:
-- Linguaggio naturale: ~170 token (160-180 range)
-- H2C: ~60 token (55-65 range)
-- JSON equivalente: ~250 token (con struttura)
-- YAML equivalente: ~280 token (con struttura)
-- MCP tool call: ~300 token (con protocollo)
+**Version:** 1.0
+**Status:** EXPERIMENTAL
+**Scope:** Compare H2C with natural language, JSON, YAML, and MCP on quantitative metrics of AI-to-AI communication efficiency.
 
 ---
 
-## 2. Tabella Comparativa Principale
+## 1. Methodology
 
-| Metrica | NL | JSON | YAML | MCP | H2C |
-|---------|:-:|:----:|:----:|:---:|:---:|
-| **Token (piano architetturale)** | ~800 | ~1,200 | ~1,400 | ~1,500 | **~50** |
-| **Token (esito build)** | ~200 | ~350 | ~400 | ~450 | **~15** |
-| **Token (ciclo 3 agenti)** | ~5,000 | ~8,000 | ~9,500 | ~10,000 | **~200** |
-| **Token (stress 130 msg)** | ~42,000 | ~65,000 | ~78,000 | ~80,000 | **~7,140** |
-| **Densità semantica** | Bassa | Media | Media-Alta | Alta | **Molto Alta** |
-| **Analizzabilità** | Nessuna | Strutturale | Strutturale | Strutturale | **Semantica** |
-| **Zero-shot cross-modello** | No | Sì | Sì | Sì | **Sì** |
-| **Supporto agenti nativo** | No | No | No | Parziale | **Sì** |
-| **Versioni file** | No | No | No | No | **Sì** |
-| **Cicli fix** | No | No | No | No | **Sì** |
-| **Gestione contesto** | No | No | No | No | **Sì** |
-| **Dipendenze runtime** | Nessuna | Libreria JSON | Libreria YAML | SDK MCP | **Nessuna** |
-| **Retrocompatibilità** | N/A | N/A | N/A | Per versione | **Sì (v1.0→v1.2)** |
-| **Punto rottura contesto** | ~40 msg | ~35 msg | ~30 msg | ~50 msg | **~130 msg** |
+### Test Setup
+- **Models tested:** Claude Sonnet 4.6, Opus 4.7
+- **Scenarios:** Hello World (simple), Calculator CLI (medium), Clean Architecture (advanced), RAG Pipeline (complex), Stress 130 msg (extreme)
+- **Token counting:** H2C and NL via tiktoken (cl100k_base) for methodological parity. Fallback: characters / 3.2 if tiktoken unavailable.
+- **Reproducible tests:** All `.h2c` files available in [opus4_7/](../../opus4_7/)
+
+### Reference Sample
+
+Example prompt for Python/FastAPI weather API:
+- Natural language: ~170 tokens (160-180 range)
+- H2C: ~60 tokens (55-65 range)
+- Equivalent JSON: ~250 tokens (with structure)
+- Equivalent YAML: ~280 tokens (with structure)
+- MCP tool call: ~300 tokens (with protocol)
 
 ---
 
-## 3. Metriche Definite
+## 2. Main Comparison Table
 
-### Token
-Conteggio assoluto di token LLM consumati per trasmettere la stessa informazione.
+| Metric | NL | JSON | YAML | MCP | H2C |
+|--------|:-:|:----:|:----:|:---:|:---:|
+| **Tokens (architectural plan)** | ~800 | ~1,200 | ~1,400 | ~1,500 | **~50** |
+| **Tokens (build result)** | ~200 | ~350 | ~400 | ~450 | **~15** |
+| **Tokens (3-agent cycle)** | ~5,000 | ~8,000 | ~9,500 | ~10,000 | **~200** |
+| **Tokens (stress 130 msg)** | ~42,000 | ~65,000 | ~78,000 | ~80,000 | **~7,140** |
+| **Semantic density** | Low | Medium | Medium-High | High | **Very High** |
+| **Analyzability** | None | Structural | Structural | Structural | **Semantic** |
+| **Zero-shot cross-model** | No | Yes | Yes | Yes | **Yes** |
+| **Native agent support** | No | No | No | Partial | **Yes** |
+| **File versioning** | No | No | No | No | **Yes** |
+| **Fix cycles** | No | No | No | No | **Yes** |
+| **Context management** | No | No | No | No | **Yes** |
+| **Runtime dependencies** | None | JSON library | YAML library | MCP SDK | **None** |
+| **Backward compatibility** | N/A | N/A | N/A | Per version | **Yes (v1.0→v1.3)** |
+| **Context break point** | ~40 msg | ~35 msg | ~30 msg | ~50 msg | **~130 msg** |
 
-### Latenza
-Misurata in round-trip: H2C riduce la latenza proporzionalmente alla riduzione token (minor tempo di generazione/inferenza).
+---
 
-### Pressione Contesto
-Percentuale di context window occupata da messaggi di protocollo vs messaggi di contenuto. H2C: ~5-10% overhead di protocollo. NL: ~30-50% overhead.
+## 3. Defined Metrics
 
-### Densità Semantica
-Informazione semantica per token:
+### Tokens
+Absolute count of LLM tokens consumed to transmit the same information.
+
+### Latency
+Measured in round-trips: H2C reduces latency proportionally to token reduction (less generation/inference time).
+
+### Context Pressure
+Percentage of context window occupied by protocol messages vs content messages. H2C: ~5-10% protocol overhead. NL: ~30-50% overhead.
+
+### Semantic Density
+Semantic information per token:
 ```
-densità = info_unit / token_count
+density = info_unit / token_count
 ```
-H2C: ~0.85-0.95 (ogni token trasporta informazione)
-NL: ~0.15-0.25 (maggior parte token = scaffolding linguistico)
-JSON/YAML: ~0.30-0.50 (metadati strutturali pesano)
+H2C: ~0.85-0.95 (every token carries information)
+NL: ~0.15-0.25 (most tokens = linguistic scaffolding)
+JSON/YAML: ~0.30-0.50 (structural metadata weighs)
 
-### Stabilità
-Capacità di mantenere coerenza referenziale oltre N messaggi:
+### Stability
+Ability to maintain referential coherence beyond N messages:
 
-| Formato | Messaggi Stabili | Degrado |
-|---------|:---------------:|:-------:|
-| NL | ~40 | Lineare dopo 30 |
-| JSON | ~35 | Improvviso |
-| YAML | ~30 | Improvviso |
-| MCP | ~50 | Graduale |
-| H2C | ~130+ | Piatto fino a 100, leggero dopo |
+| Format | Stable Messages | Degradation |
+|--------|:--------------:|:-----------:|
+| NL | ~40 | Linear after 30 |
+| JSON | ~35 | Sudden |
+| YAML | ~30 | Sudden |
+| MCP | ~50 | Gradual |
+| H2C | ~130+ | Flat up to 100, slight after |
 
-### Efficienza Orchestrazione
-Misure qualitative su capacità di esprimere costrutti di orchestrazione:
+### Orchestration Efficiency
+Qualitative measures on ability to express orchestration constructs:
 
-| Costrutto | NL | JSON | YAML | MCP | H2C |
+| Construct | NL | JSON | YAML | MCP | H2C |
 |-----------|:--:|:----:|:----:|:---:|:---:|
 | Retry tracking | ✗ | ✗ | ✗ | ✗ | ✓ |
 | File versioning | ✗ | ✗ | ✗ | ✗ | ✓ |
-| DAG dipendenze | Testuale | Manuale | Manuale | Manuale | ✓ |
-| State machine | Testuale | Manuale | Manuale | Manuale | ✓ |
+| DAG dependencies | Textual | Manual | Manual | Manual | ✓ |
+| State machine | Textual | Manual | Manual | Manual | ✓ |
 | Context pruning | ✗ | ✗ | ✗ | ✗ | ✓ |
-| Ciclo fix | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Fix cycle | ✗ | ✗ | ✗ | ✗ | ✓ |
 
 ---
 
-## 4. Breakdown per Scenario
+## 4. Breakdown by Scenario
 
-### Scenario A: Piano Architetturale (single block)
+### Scenario A: Architectural Plan (single block)
 
-| Formato | Token | Caratteri | Leggibilità | Parsabilità |
-|---------|:----:|:---------:|:-----------:|:-----------:|
-| NL | 170 | 780 | Alta | Nessuna |
-| JSON | 250 | 1,150 | Bassa | Strutturale |
-| YAML | 280 | 1,300 | Media | Strutturale |
-| MCP | 300 | 1,400 | Bassa | Strutturale |
-| H2C | 60 | 190 | Alta | **Semantica** |
+| Format | Tokens | Characters | Readability | Parsability |
+|--------|:-----:|:----------:|:-----------:|:-----------:|
+| NL | 170 | 780 | High | None |
+| JSON | 250 | 1,150 | Low | Structural |
+| YAML | 280 | 1,300 | Medium | Structural |
+| MCP | 300 | 1,400 | Low | Structural |
+| H2C | 60 | 190 | High | **Semantic** |
 
-### Scenario B: Catena 3 Agenti (15 messaggi)
+### Scenario B: 3-Agent Chain (15 messages)
 
-| Formato | Token Stimati | Overhead Protocollo |
-|---------|:------------:|:------------------:|
+| Format | Estimated Tokens | Protocol Overhead |
+|--------|:--------------:|:-----------------:|
 | NL | 5,000 | ~35% |
 | JSON | 8,000 | ~55% |
 | YAML | 9,500 | ~60% |
 | MCP | 10,000 | ~65% |
 | H2C | 200 | ~5% |
 
-### Scenario C: Stress 130 Messaggi
+### Scenario C: 130-Message Stress Test
 
-| Formato | Token | Break Point |
-|---------|:----:|:-----------:|
+| Format | Tokens | Break Point |
+|--------|:-----:|:-----------:|
 | NL | ~42,000 | ~40 msg |
 | JSON | ~65,000 | ~35 msg |
 | YAML | ~78,000 | ~30 msg |
@@ -125,23 +125,23 @@ Misure qualitative su capacità di esprimere costrutti di orchestrazione:
 
 ---
 
-## 5. Grafico di Confronto (Ascii)
+## 5. Comparison Chart (ASCII)
 
 ```
-Token per Scenario (Scala Log)
+Tokens per Scenario (Log Scale)
 ─────────────────────────────────────────────────
 100,000 │                                    ███
-         │                                 ███
+        │                                 ███
  10,000 │                   ███████████████
-         │          █████████
+        │          █████████
   1,000 │    ███████
-         │ ████
+        │ ████
     100 │█
-         │
-       10 │
-         └───┬──────┬──────┬──────┬──────┬──
-             ARCH   BUILD  CICLO  STRESS CROSS
-                    DONE   3 AG   130    MODEL
+        │
+     10 │
+        └───┬──────┬──────┬──────┬──────┬──
+            ARCH   BUILD  CYCLE  STRESS CROSS
+                   DONE   3 AG   130    MODEL
 
   ██ = NL
   ▓▓ = JSON
@@ -152,23 +152,23 @@ Token per Scenario (Scala Log)
 
 ---
 
-## 6. Test Riproducibili
+## 6. Reproducible Tests
 
-Tutti i benchmark sono generati da catene H2C reali disponibili nel repository:
+All benchmarks are generated from real H2C chains available in the repository:
 
 ```bash
-# Test Opus 4.7 (130 messaggi)
+# Opus 4.7 test (130 messages)
 cat opus4_7/test5-stress-130msg.h2c
 
-# Test Sonnet 4.6 (61 messaggi)
+# Sonnet 4.6 test (61 messages)
 cat archive/test-sonnet-4.6-v1.1.md
 
-# Auto-test
+# Self-test
 cat Test.md
 ```
 
-Per riprodurre:
-1. Copiare `skills/h2c_architect.md` come system prompt in un LLM
-2. Fornire prompt umano (es. "Crea un Hello World in Python")
-3. Seguire la catena: ARCH:PLAN → BUILD:EXEC → BUILD:DONE → TEST:RUN → TEST:PASS → ORCH:END
-4. Contare token vs equivalente NL
+To reproduce:
+1. Copy `skills/h2c_architect.md` as system prompt into an LLM
+2. Provide human prompt (e.g. "Create a Hello World in Python")
+3. Follow the chain: ARCH:PLAN → BUILD:EXEC → BUILD:DONE → TEST:RUN → TEST:PASS → ORCH:END
+4. Count tokens vs equivalent NL

@@ -60,9 +60,7 @@ opus4_7/
 
 ### Posizionamento
 
-- [docs/positioning/README.md](docs/positioning/README.md) — Cosa H2C è, cosa NON è, panorama competitivo
 - [docs/comparisons/vs-alternatives.md](docs/comparisons/vs-alternatives.md) — Confronto dettagliato alternative
-- [docs/seo/keyword-strategy.md](docs/seo/keyword-strategy.md) — Strategia SEO e keyword
 - [docs/risks/analysis.md](docs/risks/analysis.md) — SWOT, barriere adozione, matrice rischi
 
 ### Ecosistema

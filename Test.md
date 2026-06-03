@@ -1,76 +1,76 @@
-# Prompt per testare H2C in autonomia
+# Prompt to test H2C independently
 
-**Istruzioni per l'IA:**
+**Instructions for the AI:**
 
-Leggi il repository ufficiale di **H2C** e fai 5 test in completa autonomia.
+Read the official **H2C** repository and run 5 tests completely independently.
 
-### Repository da consultare:
+### Repository to consult:
 - **URL**: https://github.com/PaoEng/H2C
-- Leggi in particolare:
+- Read in particular:
   - `README.md`
   - `SPEC.md`
-  - Cartella `examples/`
-  - Cartella `skills/`
+  - `examples/` folder
+  - `skills/` folder
 
 ---
 
-### Compito:
+### Task:
 
-Esegui **5 test autonomi** simulando catene di comunicazione H2C con complessità crescente.  
-Agisci come agente ricevente e rispondi **esclusivamente in formato H2C** rispettando la specifica **v1.2**.
+Run **5 independent tests** simulating H2C communication chains with increasing complexity.  
+Act as a receiving agent and respond **exclusively in H2C format** respecting the **v1.3** specification.
 
-### I 5 test da eseguire:
+### The 5 tests to execute:
 
-**Test 1 – Livello Semplice**  
-Un semplice progetto "Hello World".
+**Test 1 – Simple Level**  
+A simple "Hello World" project.
 
-**Test 2 – Livello Medio**  
-Un calculator CLI con implementazione, test e un fix (`cycle_id` obbligatorio nel ciclo `TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:PASS`).
+**Test 2 – Medium Level**  
+A CLI calculator with implementation, test, and a fix (`cycle_id` required in `TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:PASS` cycle).
 
-**Test 3 – Livello Avanzato**  
-Refactoring verso Clean Architecture con gestione del contesto (`CTX:PRIMITIVES` / `CTX:UPDATE`).
+**Test 3 – Advanced Level**  
+Refactoring towards Clean Architecture with context management (`CTX:PRIMITIVES` / `CTX:UPDATE`).
 
-**Test 4 – Livello Molto Complesso**  
-Una catena lunga (minimo 10-12 messaggi) per una mini RAG pipeline (ricerca, implementazione, test multipli, fix, context management e chiusura).
+**Test 4 – Very Complex Level**  
+A long chain (minimum 10-12 messages) for a mini RAG pipeline (research, implementation, multiple tests, fixes, context management, and closure).
 
-**Test 5 – Stress Test v1.2**  
-Catena di 60+ messaggi per validare i blocchi `CTX:PRUNE`, `CTX:COMPACT` e `CTX:FREEZE`. Verificare:
-- `CTX:PRUNE` emesso ogni 5 messaggi (seguire la tabella di pruning in `SPEC.md` §3.3)
-- `CTX:COMPACT` emesso ogni 20 messaggi
-- `CTX:FREEZE` emesso oltre msg 100 quando il COMPACT non basta più
-- Campi v1.2 usati correttamente: `rev:`, `after:`, `notes:`, `base_rev:`, `fail_count:`, `pass_count:`, `cycle_id:`, `retry_n:`
-- Break point atteso oltre msg 100 (limite modello, non protocollo)
+**Test 5 – Stress Test v1.3**  
+Chain of 60+ messages to validate `CTX:PRUNE`, `CTX:COMPACT`, and `CTX:FREEZE` blocks. Verify:
+- `CTX:PRUNE` emitted every 5 messages (follow the pruning table in `SPEC.md` §3.3)
+- `CTX:COMPACT` emitted every 20 messages
+- `CTX:FREEZE` emitted beyond msg 100 when COMPACT is no longer sufficient
+- v1.3 fields used correctly: `rev:`, `after:`, `notes:`, `base_rev:`, `fail_count:`, `pass_count:`, `cycle_id:`, `retry_n:`
+- Expected break point beyond msg 100 (model limit, not protocol limit)
 
 ---
 
-### Output richiesto:
+### Required output:
 
-Dopo aver eseguito i test, produci un report completo con:
+After executing the tests, produce a complete report with:
 
-1. **Descrizione breve** di ciascun test
-2. **Tabella riassuntiva** con colonne:
+1. **Brief description** of each test
+2. **Summary table** with columns:
    - Test
-   - Complessità
-   - Risparmio Token stimato (%)
-   - Comprensione
-   - Stabilità
-   - Break point (se raggiunto)
+   - Complexity
+   - Estimated Token Savings (%)
+   - Comprehension
+   - Stability
+   - Break point (if reached)
 
-3. **Osservazioni principali** (punti di forza e fragilità osservate, specialmente su catene lunghe)
+3. **Main observations** (strengths and weaknesses observed, especially on long chains)
 
-4. **Confronto v1.1 vs v1.2** con dati su break point e stabilità
+4. **v1.2 vs v1.3 comparison** with data on break point and stability
 
-5. **Conclusione** sul comportamento di H2C v1.2.
-
----
-
-**Regole importanti:**
-- Fai i test veramente in autonomia (non simulare i risultati, genera catene reali).
-- Usa solo il formato H2C v1.2 per le risposte interne ai test.
-- Per il Test 5, applica PRUNE ogni 5 msg e COMPACT ogni 20 msg, FREEZE oltre msg 100.
-- Sii obiettivo e tecnico nei risultati.
-- Alla fine del report indica la data del test.
+5. **Conclusion** on the behavior of H2C v1.3.
 
 ---
 
-Inizia quando sei pronto.
+**Important rules:**
+- Really run the tests independently (don't simulate results, generate real chains).
+- Use only the H2C v1.3 format for internal test responses.
+- For Test 5, apply PRUNE every 5 messages and COMPACT every 20 messages, FREEZE beyond msg 100.
+- Be objective and technical in the results.
+- At the end of the report indicate the test date.
+
+---
+
+Start when ready.

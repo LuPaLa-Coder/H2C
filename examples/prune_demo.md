@@ -1,4 +1,4 @@
-# Esempio H2C v1.2: Catena con PRUNE e COMPACT
+# Esempio H2C v1.3: Catena con PRUNE e COMPACT
 
 Catena completa che mostra l'uso dei blocchi di contesto e di un ciclo di fix.
 

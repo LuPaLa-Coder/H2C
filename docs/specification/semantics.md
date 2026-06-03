@@ -1,34 +1,34 @@
-# Semantica Operazionale H2C
+# H2C Operational Semantics
 
-**Versione:** 1.2
-**Stato:** FORMALE
-**Scopo:** Definire la semantica operazionale del protocollo H2C — significato dei blocchi, regole di transizione e modello di esecuzione.
+**Version:** 1.3
+**Status:** FORMAL
+**Purpose:** Define the operational semantics of the H2C protocol — block meaning, transition rules, and execution model.
 
 ---
 
-## 1. Modello a Stati
+## 1. State Model
 
-L'esecuzione di una catena H2C è modellabile come macchina a stati finiti:
-
-```
-Stati:
-  INIT      → Stato iniziale (attesa ARCH:PLAN)
-  PLANNED   → Piano ricevuto (ARCH:PLAN emesso)
-  BUILDING  → In esecuzione build (BUILD:EXEC emesso)
-  BUILT     → Build completata (BUILD:DONE ricevuto)
-  TESTING   → In esecuzione test (TEST:RUN emesso)
-  TEST_PASS → Test superato (TEST:PASS ricevuto)
-  TEST_FAIL → Test fallito (TEST:FAIL ricevuto)
-  FIXING    → In correzione (BUILD:FIX emesso)
-  COMPACT   → Compattazione contesto (CTX:COMPACT emesso)
-  FROZEN    → Congelamento contesto (CTX:FREEZE emesso)
-  TERM      → Terminale (ORCH:END ricevuto)
-```
-
-### Matrice di Transizione
+An H2C chain execution can be modeled as a finite state machine:
 
 ```
-Stato Corrente    → Blocco Ricevuto    → Nuovo Stato
+States:
+  INIT      → Initial state (waiting for ARCH:PLAN)
+  PLANNED   → Plan received (ARCH:PLAN emitted)
+  BUILDING  → Build in progress (BUILD:EXEC emitted)
+  BUILT     → Build completed (BUILD:DONE received)
+  TESTING   → Test in progress (TEST:RUN emitted)
+  TEST_PASS → Test passed (TEST:PASS received)
+  TEST_FAIL → Test failed (TEST:FAIL received)
+  FIXING    → Fixing (BUILD:FIX emitted)
+  COMPACT   → Context compaction (CTX:COMPACT emitted)
+  FROZEN    → Context frozen (CTX:FREEZE emitted)
+  TERM      → Terminal (ORCH:END received)
+```
+
+### Transition Matrix
+
+```
+Current State     → Block Received     → New State
 ─────────────────────────────────────────────────────
 INIT              → ARCH:PLAN          → PLANNED
 PLANNED           → BUILD:EXEC         → BUILDING
@@ -38,64 +38,68 @@ TESTING           → TEST:PASS          → TEST_PASS
 TESTING           → TEST:FAIL          → TEST_FAIL
 TEST_FAIL         → BUILD:FIX          → FIXING
 FIXING            → BUILD:DONE         → BUILT
-BUILT|TEST_PASS   → BUILD:EXEC         → BUILDING    (prossimo step)
-ANY               → CTX:PRUNE          → ANY         (non cambia stato)
+BUILT|TEST_PASS   → BUILD:EXEC         → BUILDING    (next step)
+ANY               → CTX:PRUNE          → ANY         (state unchanged)
 ANY               → CTX:COMPACT        → COMPACT
+COMPACT           → BUILD:EXEC         → BUILDING    (resumes after compact)
+COMPACT           → CTX:FREEZE         → FROZEN
 ANY               → CTX:FREEZE         → FROZEN
+FROZEN            → BUILD:EXEC         → BUILDING    (resumes after freeze)
+FROZEN            → CTX:PRUNE          → FROZEN
 TEST_PASS|FROZEN  → ORCH:END           → TERM
-ANY               → ORCH:END           → TERM        (errore/timeout)
+ANY               → ORCH:END           → TERM        (error/timeout)
 ```
 
 ---
 
-## 2. Opcode Semantici
+## 2. Semantic Opcodes
 
-Ogni blocco H2C corrisponde a un opcode semantico con effetti definiti:
+Each H2C block corresponds to a semantic opcode with defined effects:
 
-| Opcode | Simbolo | Effetto |
-|--------|---------|---------|
-| `ARCH_PLAN` | `↻` | Inizializza contesto, definisce piano |
-| `BUILD_EXEC` | `→` | Avvia esecuzione su target |
-| `BUILD_DONE` | `✓` | Registra completamento e diff |
-| `BUILD_FIX` | `✗→` | Richiede correzione su revisione |
-| `BUILD_REVERT` | `↩` | Torna a revisione precedente |
-| `TEST_RUN` | `⚡` | Esegui test suite |
-| `TEST_PASS` | `✔` | Test superato, incrementa contatore |
-| `TEST_FAIL` | `✘` | Test fallito, apre ciclo fix |
-| `CTX_PRIM` | `◈` | Snapshot stato iniziale |
-| `CTX_UPD` | `◈→` | Aggiorna layer corrente |
-| `CTX_PRUNE` | `✂` | Pota messaggi non necessari |
-| `CTX_COMPACT` | `⊞` | Compatta storia cumulativa |
-| `CTX_FREEZE` | `⊟` | Congela baseline, reset contatori |
-| `STATE_FIND` | `◆` | Emette risultato analisi |
-| `STATE_ACK` | `◀` | Accusa ricezione protocollo |
-| `ORCH_END` | `■` | Termina orchestrazione |
+| Opcode | Symbol | Effect |
+|--------|--------|--------|
+| `ARCH_PLAN` | `↻` | Initialize context, define plan |
+| `BUILD_EXEC` | `→` | Start execution on target |
+| `BUILD_DONE` | `✓` | Register completion and diff |
+| `BUILD_FIX` | `✗→` | Request correction on revision |
+| `BUILD_REVERT` | `↩` | Return to previous revision |
+| `TEST_RUN` | `⚡` | Execute test suite |
+| `TEST_PASS` | `✔` | Test passed, increment counter |
+| `TEST_FAIL` | `✘` | Test failed, open fix cycle |
+| `CTX_PRIM` | `◈` | Initial state snapshot |
+| `CTX_UPD` | `◈→` | Update current layer |
+| `CTX_PRUNE` | `✂` | Prune unnecessary messages |
+| `CTX_COMPACT` | `⊞` | Compact cumulative history |
+| `CTX_FREEZE` | `⊟` | Freeze baseline, reset counters |
+| `STATE_FIND` | `◆` | Emit analysis result |
+| `STATE_ACK` | `◀` | Acknowledge protocol |
+| `ORCH_END` | `■` | Terminate orchestration |
 
-### Effetti Collaterali
+### Side Effects
 
 ```
 Opcode           → Side Effect
 ─────────────────────────────────
-ARCH_PLAN        → Crea contesto, inizializza contatori msg
-BUILD_EXEC       → Incrementa contatore build, push stack esecuzione
-BUILD_DONE       → Pop stack esecuzione, registra diff
-BUILD_FIX        → Incrementa retry_n, apre cycle_id
-TEST_PASS        → Incrementa pass_count per cycle_id
-TEST_FAIL        → Incrementa fail_count per cycle_id
-CTX_PRUNE        → Decrementa contatore messaggi attivi
-CTX_COMPACT      → Reset contatore PRUNE, compatta storia
-CTX_FREEZE       → Reset PRUNE + COMPACT, archivia storia
+ARCH_PLAN        → Create context, initialize msg counters
+BUILD_EXEC       → Increment build counter, push execution stack
+BUILD_DONE       → Pop execution stack, register diff
+BUILD_FIX        → Increment retry_n, open cycle_id
+TEST_PASS        → Increment pass_count per cycle_id
+TEST_FAIL        → Increment fail_count per cycle_id
+CTX_PRUNE        → Decrement active message counter
+CTX_COMPACT      → Reset PRUNE counter, compact history
+CTX_FREEZE       → Reset PRUNE + COMPACT counters, archive history
 ```
 
 ---
 
-## 3. Modello di Concorrenza
+## 3. Concurrency Model
 
-H2C è **sequentiale** per progetto. Ogni messaggio è una transizione atomica:
+H2C is **sequential** by design. Each message is an atomic transition:
 
 ```
 ┌─ Lock ─────────────────┐
-│ [ARCH:PLAN]             │  ← solo un blocco per messaggio
+│ [ARCH:PLAN]             │  ← only one block per message
 │ id:X|fw:python|...      │
 └─────────────────────────┘
          │
@@ -106,48 +110,48 @@ H2C è **sequentiale** per progetto. Ogni messaggio è una transizione atomica:
 └─────────────────────────┘
 ```
 
-Non esiste concorrenza nativa. L'orchestrazione multi-agente è sequenziale:
-- Un blocco in input
-- Un blocco in output
-- transizione atomica
+No native concurrency. Multi-agent orchestration is sequential:
+- One block in input
+- One block in output
+- Atomic transition
 
-Per parallelismo, usare `after:` per DAG esplicito:
+For parallelism, use `after:` for explicit DAG:
 ```
 [BUILD:EXEC] id:m1|target:a.py
 [BUILD:EXEC] id:m2|target:b.py|after:m1
-[BUILD:EXEC] id:m3|target:c.py|after:m1   ← parallelo a m2 (DAG)
+[BUILD:EXEC] id:m3|target:c.py|after:m1   ← parallel to m2 (DAG)
 ```
 
 ---
 
-## 4. Modello di Memoria
+## 4. Memory Model
 
-H2C definisce uno **spazio di memoria condiviso** tra agenti:
+H2C defines a **shared memory space** between agents:
 
 ```
-Memoria Globale:
-  ├── msg_counter:      integer       (contatore messaggi globale)
+Global Memory:
+  ├── msg_counter:      integer       (global message counter)
   ├── context_state:    { layer, status, next, active_files }
-  ├── revision_table:   { file → rev } (stato revisioni)
+  ├── revision_table:   { file → rev } (revision state)
   ├── cycle_registry:   { cycle_id → { retry_n, fail_count, pass_count, status }}
-  └── findings:         [FINDING*]     (lista risultati analisi)
+  └── findings:         [FINDING*]     (analysis results list)
 ```
 
-Questo spazio è **implicito** — non serializzato esplicitamente ma ricostruibile dal parsing della cronologia dei blocchi.
+This space is **implicit** — not explicitly serialized but reconstructible by parsing the block history.
 
 ---
 
-## 5. Regole di Integrità
+## 5. Integrity Rules
 
 ```
-R1: Un cycle_id aperto da BUILD:FIX deve chiudersi con TEST:PASS o ORCH:END
-R2: retry_n non può superare 3 per cycle_id
-R3: fail_count resetta quando cycle_id cambia
-R4: CTX:PRUNE obbligatorio ogni 5 messaggi
-R5: CTX:COMPACT obbligatorio ogni 20 messaggi (dopo il reset: ogni 20 dal COMPACT)
-R6: CTX:FREEZE esattamente una volta, quando COMPACT non basta (~100 msg)
-R7: CTX:UPDATE obbligatorio a ogni cambio layer
-R8: ORCH:END è terminale — nessun blocco dopo
-R9: Ogni id deve essere unico nello scope della catena
-R10: base_rev in BUILD:FIX deve corrispondere a rev in BUILD:DONE
+R1: A cycle_id opened by BUILD:FIX must close with TEST:PASS or ORCH:END
+R2: retry_n cannot exceed 3 per cycle_id
+R3: fail_count resets when cycle_id changes
+R4: CTX:PRUNE mandatory every 5 messages
+R5: CTX:COMPACT mandatory every 20 messages (after reset: every 20 from COMPACT)
+R6: CTX:FREEZE exactly once, when COMPACT is no longer sufficient (~100 msgs)
+R7: CTX:UPDATE mandatory on every layer change
+R8: ORCH:END is terminal — no blocks after
+R9: Every id must be unique within the chain scope
+R10: base_rev in BUILD:FIX must match rev in BUILD:DONE
 ```

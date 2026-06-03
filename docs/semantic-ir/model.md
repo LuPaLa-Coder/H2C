@@ -1,23 +1,23 @@
-# Modello IR Semantico H2C
+# H2C Semantic IR Model
 
-**Versione:** 1.0
-**Stato:** PROGETTAZIONE
-**Scopo:** Definire il modello di Intermediate Representation (IR) semantico per retrieval, indicizzazione e riutilizzo di catene H2C.
-
----
-
-## 1. Cos'è l'IR Semantico
-
-L'IR Semantico H2C è una rappresentazione intermedia che cattura il significato di una catena di blocchi H2C in forma indicizzabile e recuperabile. Serve come ponte tra il formato wire H2C e sistemi di retrieval (vector DB, search, LLM context).
+**Version:** 1.0
+**Status:** DRAFT
+**Scope:** Define the semantic Intermediate Representation (IR) model for retrieval, indexing, and reuse of H2C chains.
 
 ---
 
-## 2. Modello Dati
+## 1. What is Semantic IR
+
+The H2C Semantic IR is an intermediate representation that captures the meaning of an H2C block chain in an indexable and retrievable form. It serves as a bridge between the wire-format H2C and retrieval systems (vector DB, search, LLM context).
+
+---
+
+## 2. Data Model
 
 ```json
 {
   "chain_id": "uuid",
-  "protocol_version": "1.2",
+  "protocol_version": "1.3",
   "created_at": "ISO8601",
   "model": "claude-sonnet-4.6",
   "messages": [
@@ -57,26 +57,26 @@ L'IR Semantico H2C è una rappresentazione intermedia che cattura il significato
 
 ---
 
-## 3. Campi per Retrieval
+## 3. Fields for Retrieval
 
-| Campo | Tipo | Utilizzo |
-|-------|------|----------|
-| `chain_id` | uuid | Referenza univoca |
-| `type` | string | Filtro per tipo blocco |
-| `fields.fw` | string | Filtro per framework |
-| `fields.lib` | list | Ricerca per libreria |
-| `fields.pattern` | string | Ricerca per pattern architetturale |
-| `semantic_hash` | hash | Deduplicazione |
-| `embedding` | vector[float] | Similarità semantica |
-| `metrics.token_savings_pct` | float | Filtro efficienza |
-| `tags` | list[string] | Tag per categorizzazione |
+| Field | Type | Usage |
+|-------|------|-------|
+| `chain_id` | uuid | Unique reference |
+| `type` | string | Filter by block type |
+| `fields.fw` | string | Filter by framework |
+| `fields.lib` | list | Search by library |
+| `fields.pattern` | string | Search by architectural pattern |
+| `semantic_hash` | hash | Deduplication |
+| `embedding` | vector[float] | Semantic similarity |
+| `metrics.token_savings_pct` | float | Efficiency filter |
+| `tags` | list[string] | Categorization tags |
 
 ---
 
-## 4. Casi d'Uso
+## 4. Use Cases
 
-- **Retrieval-Augmented Generation (RAG)**: Recuperare catene H2C simili a un prompt dato
-- **Knowledge Base Agenti**: Archiviare e ricercare catene completate
-- **Transfer Learning**: Riutilizzare piani architetturali da catene precedenti
-- **Benchmarking**: Confrontare efficienza tra modelli e versioni protocollo
-- **Audit**: Tracciare decisioni architetturali e cicli fix
+- **Retrieval-Augmented Generation (RAG)**: Retrieve H2C chains similar to a given prompt
+- **Agent Knowledge Base**: Store and search completed chains
+- **Transfer Learning**: Reuse architectural plans from previous chains
+- **Benchmarking**: Compare efficiency across models and protocol versions
+- **Audit**: Track architectural decisions and fix cycles

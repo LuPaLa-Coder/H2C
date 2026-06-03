@@ -5,13 +5,13 @@
 ![H2C Protocol](1779633660140.png)
 
 ```
-Protocollo: H2C v1.2
+Protocollo: H2C v1.3
 Stato:      DRAFT (validato)
 Licenza:    MIT
 Specifica:  SPEC.md
 ```
 
-> **NON** è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro per connessioni HTTP/1.1. Questo H2C è un **protocollo di compressione semantica per comunicazione AI-to-AI**, grammaticalmente e funzionalmente indipendente. Vedi [Posizionamento](docs/positioning/README.md) per la disambiguazione completa.
+> **NON** è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro per connessioni HTTP/1.1. Questo H2C è un **protocollo di compressione semantica per comunicazione AI-to-AI**, grammaticalmente e funzionalmente indipendente. Vedi [Confronto con alternative](docs/comparisons/vs-alternatives.md) per la disambiguazione completa.
 
 ---
 
@@ -103,7 +103,7 @@ Questo sostituisce ~180 token di linguaggio naturale con ~55 token (~70% di risp
 |---------|-------------|---------|
 | [API Meteo](examples/api-meteo.md) | Servizio meteo Python/FastAPI vs prompt NL | ~65% |
 | [TODO Console](examples/todo-console.md) | App console C# .NET 8 con SQLite vs NL | ~59% |
-| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.2 completa con gestione contesto | ~80% |
+| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.3 completa con gestione contesto | ~80% |
 | [Test Opus 4.7](opus4_7/REPORT.md) | 5 scenari, fino a 130 messaggi | ~78–83% |
 
 ---
@@ -158,7 +158,8 @@ Vedi [docs/ecosystem/integrations.md](docs/ecosystem/integrations.md).
 | v1.0 | Grammatica core, blocchi base | RILASCIATO |
 | v1.1 | PRUNE/COMPACT, rev, fail/pass count | RILASCIATO |
 | v1.2 | FREEZE, cycle_id obbligatorio, retry_n, rinomina skill | RILASCIATO |
-| v1.3 | EBNF formale, modello AST, opcode semantici | PIANIFICATO |
+| v1.3 | EBNF formale (ISO 14977), modello AST, opcode semantici, macchina stati completa | RILASCIATO |
+| v1.4 | BNF grammar signed_int, ~progress separatore uniforme, DAG cycle detection | PIANIFICATO |
 | v2.0 | Implementazione di riferimento parser, validatore, transpiler | PIANIFICATO |
 | v3.0 | Compilatore H2C, trasporto nativo MCP, runtime agenti | RICERCA |
 
@@ -189,7 +190,7 @@ Requisiti: Qualsiasi LLM con context window ≥8K. Nessuna libreria. Nessuna dip
 
 ## Contributi
 
-Vedi [CONTRIBUTING.md](docs/CONTRIBUTING.md) (in arrivo).
+Vedi [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

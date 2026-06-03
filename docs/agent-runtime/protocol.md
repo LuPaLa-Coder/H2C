@@ -1,12 +1,12 @@
-# Specifica Runtime Agenti H2C
+# H2C Agent Runtime Specification
 
-**Versione:** 1.0
-**Stato:** PROGETTAZIONE
-**Scopo:** Definire il modello di runtime per l'esecuzione di catene H2C tra agenti AI.
+**Version:** 1.0
+**Status:** DRAFT
+**Scope:** Define the runtime model for executing H2C chains between AI agents.
 
 ---
 
-## 1. Modello di Runtime
+## 1. Runtime Model
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -20,43 +20,43 @@
 │       ▼              ▼               ▼       │
 │  ┌──────────┐   ┌──────────┐   ┌──────────┐  │
 │  │Validator │   │Context   │   │Skills    │  │
-│  │(Regole)  │   │Manager   │   │Loader    │  │
+│  │(Rules)   │   │Manager   │   │Loader    │  │
 │  └──────────┘   └──────────┘   └──────────┘  │
 └──────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Componenti
+## 2. Components
 
 ### Parser
-- Input: testo H2C
-- Output: AST (Albero Sintattico Astratto)
-- Validazione: EBNF grammar + vincoli
-- Errori: blocco malformato → scartato + log
+- Input: H2C text
+- Output: AST (Abstract Syntax Tree)
+- Validation: EBNF grammar + constraints
+- Errors: malformed block → discarded + log
 
 ### State Machine
 - Input: AST
-- Output: nuova transizione stato
-- Tabella: vedi [docs/specification/semantics.md](../specification/semantics.md)
+- Output: new state transition
+- Table: see [docs/specification/semantics.md](../specification/semantics.md)
 
 ### Dispatcher
-- Input: AST + stato corrente
-- Output: routing a skill/agente corretto
-- Logica: tipo/subtipo → handler
+- Input: AST + current state
+- Output: routing to correct skill/agent
+- Logic: type/subtype → handler
 
 ### Context Manager
-- Mantiene: msg_counter, cycle_registry, revision_table
-- Trigger: PRUNE ogni 5, COMPACT ogni 20, FREEZE ~100
-- Reset: dopo COMPACT e FREEZE
+- Maintains: msg_counter, cycle_registry, revision_table
+- Triggers: PRUNE every 5, COMPACT every 20, FREEZE ~100
+- Reset: after COMPACT and FREEZE
 
 ### Validator
-- Regole: vincoli operazionali (retry_n ≤ 3, cycle_id match, ...)
-- Output: blocco valido/invalido + warning
+- Rules: operational constraints (retry_n ≤ 3, cycle_id match, ...)
+- Output: valid/invalid block + warning
 
 ---
 
-## 3. Architettura Futura: Compilatore H2C
+## 3. Future Architecture: H2C Compiler
 
 ```
 H2C Source Code
@@ -79,20 +79,20 @@ H2C Source Code
 └─────────────┘
 ```
 
-### Target del Transpiler
-- JSON → interoperabilità con sistemi esistenti
-- MCP → trasporto nativo su Model Context Protocol
-- gRPC → alta performance per runtime agenti
+### Transpiler Targets
+- JSON → interoperability with existing systems
+- MCP → native transport over Model Context Protocol
+- gRPC → high performance for agent runtimes
 - NL → debug, logging, human-readable audit trail
 
 ---
 
-## 4. Binding di Trasporto
+## 4. Transport Bindings
 
-| Binding | Mezzo | Caso d'Uso |
-|---------|-------|------------|
-| stdin/stdout | Pipe UNIX | Agenti locali, CLI |
-| HTTP POST | REST | API gateway, microservizi |
-| WebSocket | Bidirezionale | Streaming, long-lived |
+| Binding | Medium | Use Case |
+|---------|--------|----------|
+| stdin/stdout | UNIX pipe | Local agents, CLI |
+| HTTP POST | REST | API gateway, microservices |
+| WebSocket | Bidirectional | Streaming, long-lived |
 | MCP | Tool call | Framework agnostic |
-| File system | File .h2c | Batch, debug, riproduzione |
+| File system | .h2c file | Batch, debug, replay |
