@@ -1,29 +1,29 @@
-# Pipeline del Compilatore — Protocollo H2C
+# Compiler Pipeline — H2C Protocol
 
-**Versione:** 1.0
-**Stato:** RICERCA
-**Scopo:** Definire l'architettura del compilatore/transpiler H2C — da H2C ad altri formati e viceversa.
+**Version:** 1.0
+**Status:** RESEARCH
+**Scope:** Define the architecture of the H2C compiler/transpiler — from H2C to other formats and vice versa.
 
 ---
 
-## 1. Visione
+## 1. Vision
 
-Il compilatore H2C trasforma blocchi H2C in altri formati (linguaggio naturale, JSON, MCP, YAML) e viceversa. Serve come ponte tra il protocollo H2C e gli strumenti/framework esistenti.
+The H2C compiler transforms H2C blocks into other formats (natural language, JSON, MCP, YAML) and vice versa. It serves as a bridge between the H2C protocol and existing tools/frameworks.
 
 ```
 ┌──────────┐    ┌──────────────┐    ┌──────────┐
-│  H2C     │───→│  Compilatore │───→│  Output  │
-│ (input)  │    │  H2C v1.2    │    │ formati  │
+│  H2C     │───→│  Compiler    │───→│  Output  │
+│ (input)  │    │  H2C v1.3    │    │ formats  │
 └──────────┘    └──────────────┘    └──────────┘
                       │
-                      ├──→ Linguaggio Naturale
+                      ├──→ Natural Language
                       ├──→ JSON / JSON-RPC
                       ├──→ YAML
                       ├──→ MCP Tool Call
-                      └──→ Prompt LLM completo
+                      └──→ Complete LLM Prompt
 ```
 
-## 2. Pipeline di Compilazione
+## 2. Compilation Pipeline
 
 ```
 H2C Input
@@ -35,29 +35,29 @@ H2C Input
    │
    ▼
 ┌──────────────┐
-│  Validazione │  → Controllo campi REQUIRED, tipi, vincoli
+│  Validation  │  → Check REQUIRED fields, types, constraints
 └──────────────┘
    │
    ▼
 ┌──────────────┐
-│  Analisi     │  → Risoluzione riferimenti (cycle_id, after)
-│  Semantica   │  → Ricostruzione stato e contesto
+│  Semantic    │  → Reference resolution (cycle_id, after)
+│  Analysis    │  → State and context reconstruction
 └──────────────┘
    │
    ▼
 ┌──────────────┐
-│  Codegen     │  → Generazione output nel formato target
+│  Codegen     │  → Generate output in target format
 └──────────────┘
    │
    ▼
 Output
 ```
 
-## 3. Backend di Codegen
+## 3. Codegen Backends
 
-### 3.1 H2C → Linguaggio Naturale
+### 3.1 H2C → Natural Language
 
-Converte blocchi H2C in prompt leggibili da umani. Utile per debugging, logging e documentazione.
+Converts H2C blocks into human-readable prompts. Useful for debugging, logging, and documentation.
 
 ```
 Input:
@@ -68,28 +68,28 @@ Output:
 === ARCH:PLAN ===
 ID: api
 Framework: python
-Librerie: fastapi, redis
-Note: autenticazione JWT, cache 10 minuti
+Libraries: fastapi, redis
+Notes: JWT authentication, 10 min cache
 ```
 
-**Template per ogni blocco:**
+**Template for each block:**
 
-| Blocco | Template NL |
-|--------|-------------|
-| `ARCH:PLAN` | `Piano architetturale per {id}. Framework: {fw}. Librerie: {lib}. Note: {notes}` |
-| `BUILD:EXEC` | `Esegui build {id} su {target}. Descrizione: {desc}` |
-| `BUILD:DONE` | `Build {id} completata su {diff}` |
-| `BUILD:FIX` | `Correggi {target} (rev {base_rev}): {desc}` |
-| `TEST:RUN` | `Esegui test {id}: {cmd}` |
-| `TEST:PASS` | `Test {id} superato` |
-| `TEST:FAIL` | `Test {id} fallito: {error}` |
-| `CTX:PRUNE` | `Pruning contesto: mantenuto {keep}, potato {pruned}` |
-| `CTX:COMPACT` | `Compattazione: {summary}` |
-| `ORCH:END` | `Orchestrazione terminata: {final}` |
+| Block | NL Template |
+|-------|-------------|
+| `ARCH:PLAN` | `Architectural plan for {id}. Framework: {fw}. Libraries: {lib}. Notes: {notes}` |
+| `BUILD:EXEC` | `Execute build {id} on {target}. Description: {desc}` |
+| `BUILD:DONE` | `Build {id} completed on {diff}` |
+| `BUILD:FIX` | `Fix {target} (rev {base_rev}): {desc}` |
+| `TEST:RUN` | `Run test {id}: {cmd}` |
+| `TEST:PASS` | `Test {id} passed` |
+| `TEST:FAIL` | `Test {id} failed: {error}` |
+| `CTX:PRUNE` | `Context pruning: kept {keep}, pruned {pruned}` |
+| `CTX:COMPACT` | `Compaction: {summary}` |
+| `ORCH:END` | `Orchestration terminated: {final}` |
 
 ### 3.2 H2C → JSON
 
-Converte blocchi H2C in JSON strutturato per integrazione con API REST e sistemi di messaggistica.
+Converts H2C blocks into structured JSON for integration with REST APIs and messaging systems.
 
 ```
 Input:
@@ -110,12 +110,12 @@ Output:
 
 ### 3.3 H2C → MCP Tool Call
 
-Converte blocchi H2C in chiamate strumento MCP. Permette a H2C di essere trasportato su MCP.
+Converts H2C blocks into MCP tool calls. Enables H2C to be transported over MCP.
 
 ```
 Input:
 [BUILD:EXEC]
-id:m2|target:models/user.py|desc:crea_modello_utente
+id:m2|target:models/user.py|desc:create_user_model
 
 Output:
 {
@@ -126,7 +126,7 @@ Output:
     "arguments": {
       "id": "m2",
       "target": "models/user.py",
-      "desc": "crea_modello_utente"
+      "desc": "create_user_model"
     }
   },
   "id": 1
@@ -139,15 +139,15 @@ Output:
 build_exec:
   id: m2
   target: models/user.py
-  desc: crea_modello_utente
+  desc: create_user_model
 ```
 
-## 4. Compilatore Inverso (NL → H2C)
+## 4. Reverse Compiler (NL → H2C)
 
-Il compilatore inverso analizza testo in linguaggio naturale e produce blocchi H2C. Utile per:
-- Migrazione graduale da prompt NL a H2C
-- Interfacce ibride (umano scrive NL, sistema converte in H2C)
-- Tooling di onboarding
+The reverse compiler analyzes natural language text and produces H2C blocks. Useful for:
+- Gradual migration from NL prompts to H2C
+- Hybrid interfaces (human writes NL, system converts to H2C)
+- Onboarding tooling
 
 ```
 Input NL:
@@ -161,61 +161,61 @@ Output:
 id:api|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey|notes:[cache_TTL_10min]
 ```
 
-**Strategia:** Usa pattern matching su strutture tipiche del prompt engineering:
+**Strategy:** Uses pattern matching on typical prompt engineering structures:
 - "Crea un ... in ..." → `id` + `fw`
 - "Usa ... per ..." → `lib`
 - "Richiede ..." → `auth`
-- Note tecniche in parentesi → `notes`
+- Technical notes in parentheses → `notes`
 
-## 5. Validatore
+## 5. Validator
 
-### 5.1 Regole di Validazione
+### 5.1 Validation Rules
 
 ```
-VALIDATOR-1:  Ogni blocco deve avere tipo e sottotipo validi (contro enum §1)
-VALIDATOR-2:  I campi REQUIRED devono essere presenti
-VALIDATOR-3:  I campi devono avere tipo corretto (string/list/int/enum)
-VALIDATOR-4:  cycle_id deve essere coerente nella catena
-VALIDATOR-5:  retry_n nel range [1..3]
-VALIDATOR-6:  after: deve riferirsi a id esistenti (DAG integro)
-VALIDATOR-7:  diff: formato corretto [file~N,+M,file~N,-K]
-VALIDATOR-8:  ORCH:END è terminale — nessun blocco dopo
-VALIDATOR-9:  CTX:PRUNE ogni 5 messaggi (controllo temporale)
-VALIDATOR-10: CTX:COMPACT ogni 20 messaggi
-VALIDATOR-11: CTX:FREEZE non più di una volta
-VALIDATOR-12: Nessun testo fuori dai campi
+VALIDATOR-1:  Every block must have valid type and subtype (against enum §1)
+VALIDATOR-2:  REQUIRED fields must be present
+VALIDATOR-3:  Fields must have correct type (string/list/int/enum)
+VALIDATOR-4:  cycle_id must be consistent across the chain
+VALIDATOR-5:  retry_n in range [1..3]
+VALIDATOR-6:  after: must reference existing ids (DAG integrity, cycles detected → invalid block)
+VALIDATOR-7:  diff: correct format [file~N,+M,file~N,-K]
+VALIDATOR-8:  ORCH:END is terminal — no blocks after
+VALIDATOR-9:  CTX:PRUNE every 5 messages (temporal check)
+VALIDATOR-10: CTX:COMPACT every 20 messages
+VALIDATOR-11: CTX:FREEZE no more than once
+VALIDATOR-12: No text outside fields
 ```
 
-### 5.2 Architettura del Validatore
+### 5.2 Validator Architecture
 
 ```
 ┌──────────────┐
-│  Validatore  │
 │  H2C         │
+│  Validator   │
 └──────┬───────┘
        │
-       ├── Validatore Sintattico
-       │     ├── Controllo formato blocco [TIPO:SOTTOTIPO]
-       │     ├── Controllo separatori : e |
-       │     └── Controllo parentesi []
+       ├── Syntactic Validator
+       │     ├── Block format check [TYPE:SUBTYPE]
+       │     ├── Separator check : and |
+       │     └── Bracket check []
        │
-       ├── Validatore Strutturale
-       │     ├── Campi REQUIRED presenti
-       │     ├── Tipi campi corretti
-       │     └── Vincoli di formato
+       ├── Structural Validator
+       │     ├── REQUIRED fields present
+       │     ├── Field types correct
+       │     └── Format constraints
        │
-       ├── Validatore Contestuale
-       │     ├── cycle_id coerente
-       │     ├── DAG after: integro
+       ├── Contextual Validator
+       │     ├── cycle_id consistency
+       │     ├── DAG after: integrity
        │     ├── retry_n range
-       │     └── Frequenza PRUNE/COMPACT/FREEZE
+       │     └── PRUNE/COMPACT/FREEZE frequency
        │
-       └── Validatore Terminale
-             ├── ORCH:END è ultimo
-             └── Nessun blocco dopo END
+       └── Terminal Validator
+             ├── ORCH:END is last
+             └── No blocks after END
 ```
 
-### 5.3 Output di Validazione
+### 5.3 Validation Output
 
 ```json
 {
@@ -243,41 +243,41 @@ VALIDATOR-12: Nessun testo fuori dai campi
 }
 ```
 
-## 6. Tabella di Routing (Dispatcher)
+## 6. Routing Table (Dispatcher)
 
-Il dispatcher instrada ogni blocco al componente appropriato:
+The dispatcher routes each block to the appropriate component:
 
 ```
-Blocco              → Destinazione
+Block              → Destination
 ────────────────────────────────
-ARCH:PLAN           → Sistema di pianificazione
-BUILD:EXEC          → Builder (esecutore)
-BUILD:DONE          → Orchestratore (notifica)
-BUILD:FIX           → Builder (correzione)
+ARCH:PLAN           → Planning system
+BUILD:EXEC          → Builder (executor)
+BUILD:DONE          → Orchestrator (notification)
+BUILD:FIX           → Builder (correction)
 BUILD:REVERT        → Builder (rollback)
 TEST:RUN            → Tester
-TEST:PASS           → Orchestratore (successo)
-TEST:FAIL           → Orchestratore (errore)
-CTX:PRIMITIVES      → Gestore contesto
-CTX:UPDATE          → Gestore contesto
-CTX:PRUNE           → Gestore contesto (pruning)
-CTX:COMPACT         → Gestore contesto (compattazione)
-CTX:FREEZE          → Gestore contesto (congelamento)
-STATE:FINDINGS      → Sistema di auditing
-STATE:ACK           → Protocollo (handshake)
-ORCH:END            → Orchestratore (terminazione)
-SKILL:PROMPT        → Definizione agente
+TEST:PASS           → Orchestrator (success)
+TEST:FAIL           → Orchestrator (error)
+CTX:PRIMITIVES      → Context manager
+CTX:UPDATE          → Context manager
+CTX:PRUNE           → Context manager (pruning)
+CTX:COMPACT         → Context manager (compaction)
+CTX:FREEZE          → Context manager (freezing)
+STATE:FINDINGS      → Auditing system
+STATE:ACK           → Protocol (handshake)
+ORCH:END            → Orchestrator (termination)
+SKILL:PROMPT        → Agent definition
 ```
 
-## 7. Roadmap Implementativa
+## 7. Implementation Roadmap
 
-| Fase | Componente | Stato |
-|------|-----------|-------|
-| 1 | Parser Python (minimo) | PROGETTAZIONE |
-| 2 | Validatore sintattico | PROGETTAZIONE |
-| 3 | Codegen NL (H2C → testo) | PROGETTAZIONE |
-| 4 | Codegen JSON (H2C → API) | PROGETTAZIONE |
-| 5 | Compilatore inverso NL → H2C | RICERCA |
-| 6 | Integrazione MCP nativa | RICERCA |
-| 7 | Parser Rust/WASM (produzione) | RICERCA |
-| 8 | IDE extension (syntax highlight, validation) | FUTURO |
+| Phase | Component | Status |
+|-------|-----------|--------|
+| 1 | Python parser (minimal) | DRAFT |
+| 2 | Syntactic validator | DRAFT |
+| 3 | NL codegen (H2C → text) | DRAFT |
+| 4 | JSON codegen (H2C → API) | DRAFT |
+| 5 | Reverse compiler NL → H2C | RESEARCH |
+| 6 | Native MCP integration | RESEARCH |
+| 7 | Rust/WASM parser (production) | RESEARCH |
+| 8 | IDE extension (syntax highlight, validation) | FUTURE |

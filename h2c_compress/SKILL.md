@@ -71,7 +71,7 @@ Produci comunque il blocco — sarà semanticamente equivalente e funzionerà ze
 in qualunque LLM downstream. Però rispetta queste tre cose non negoziabili:
 
 1. **Calcola davvero i token** con `tiktoken` o fallback `len/3.2`. Mai inventare le %.
-2. **Avvisa l'utente in chiusura** che il formato emesso è dialect, non strict H2C v1.2.
+2. **Avvisa l'utente in chiusura** che il formato emesso è dialect, non strict H2C v1.3.
 3. **Suggerisci upgrade modello** se l'utente ha bisogno di interoperabilità con parser
    H2C ufficiali (validator, transpiler, compiler-pipeline).
 
@@ -136,7 +136,7 @@ davvero eseguire un prompt non invoca `h2c_compress`.
 ## Flusso operativo
 
 1. **Identifica il tipo di richiesta** nel prompt NL e scegli il blocco H2C
-   target dalla grammatica v1.2 (vedi `SPEC.md` se accessibile, altrimenti
+   target dalla grammatica v1.3 (vedi `SPEC.md` se accessibile, altrimenti
    il repo ufficiale https://github.com/PaoEng/H2C):
 
    | Tipo di prompt | Blocco H2C target |
@@ -152,7 +152,7 @@ davvero eseguire un prompt non invoca `h2c_compress`.
    domanda generica, mail), **rifiuta cortesemente la compressione**: H2C è
    pensato per task di sviluppo software, non per ogni tipo di richiesta.
 
-2. **Estrai i campi obbligatori e opzionali** del blocco target dalla SPEC v1.2.
+2. **Estrai i campi obbligatori e opzionali** del blocco target dalla SPEC v1.3.
    Per ogni campo, mappa la frase in linguaggio naturale al valore compresso:
 
    - Identifica slug (`id:`) breve e parlante (kebab-case, no spazi)

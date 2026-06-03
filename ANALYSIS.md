@@ -1,104 +1,104 @@
-# Protocollo H2C — Report di Analisi del Repository
+# H2C Protocol — Repository Analysis Report
 
-**Stato:** COMPLETATO
-**Data:** 2026-05-26
-**Ambito:** Audit strutturale, semantico e di posizionamento
+**Status:** COMPLETED
+**Date:** 2026-05-26
+**Scope:** Structural, semantic, and positioning audit
 
 ---
 
 ## 1. Executive Summary
 
-H2C è un protocollo a grammatica a blocchi compressi per la comunicazione AI-to-AI tra agenti. Raggiunge una riduzione del 75–93% dei token rispetto al linguaggio naturale preservando l'equivalenza semantica. Il protocollo è stato validato su modelli multipli (Claude Sonnet 4.6, Opus 4.7) con catene fino a 130 messaggi.
+H2C is a compressed block grammar protocol for AI-to-AI communication between agents. It achieves 75–93% token reduction compared to natural language while preserving semantic equivalence. The protocol has been validated on multiple models (Claude Sonnet 4.6, Opus 4.7) with chains up to 130 messages.
 
-Il repository ha solide fondamenta tecniche ma soffre di cinque problemi critici che compromettono scopribilità, credibilità e adozione.
-
----
-
-## 2. Problemi Rilevati
-
-### 2.1 Ambiguità di Naming — CRITICO
-
-| Problema | Dettaglio |
-|----------|-----------|
-| **Conflitto HTTP/2** | `h2c` è il meccanismo di upgrade in chiaro per HTTP/2 (RFC 7540 §3.1, `Upgrade: h2c`). Ogni ricerca di "h2c protocol" restituisce risultati HTTP/2. |
-| **Sovraccarico acronimo** | H2C = "Human-to-Compressed" è semanticamente debole. Il vero valore è AI-to-AI, non human-to-anything. "Compresso" suggerisce compressione con perdita. |
-| **Collisione di brand** | `h2c` appare in pacchetti npm, librerie Go e middleware HTTP/2. La SEO è effettivamente zero per questo nome. |
-| **Scopribilità** | Google/Bing/GitHub per "h2c" non restituiscono risultati per questo progetto nelle prime 10 pagine. |
-
-### 2.2 Debolezza SEO — CRITICO
-
-| Gap | Impatto |
-|-----|---------|
-| Nessuna keyword o description in alcun documento | Zero segnale semantico per motori di ricerca |
-| Titolo "h2c Protocol" collide con HTTP/2 | Tutto il traffico va alla documentazione HTTP/2 |
-| Nessun dato strutturato (JSON-LD) | Nessun rich snippet |
-| Nessun GitHub topic oltre "protocol" | Scoperta su GitHub nulla |
-| Nessun `llms.txt` o `llms-full.txt` | I sistemi di retrieval LLM non possono indicizzare il protocollo |
-
-### 2.3 Bassa Retrievabilità LLM — CRITICO
-
-| Gap | Impatto |
-|-----|---------|
-| Keyword assenti: `compressione semantica`, `AI-to-AI`, `orchestrazione agenti`, `trasporto ragionamento` | Gli LLM non possono associare H2C a questi concetti |
-| README inquadrato come "compressione prompt" | Banalizza il protocollo; gli LLM lo categorizzano come hack di basso valore |
-| Nessun modello IR semantico | Nessun contesto per sistemi di retrieval |
-| Nessun `llms.txt` | Cursor, Copilot, ChatGPT, Claude non hanno contesto indicizzato |
-
-### 2.4 Inconsistenza Strutturale — ALTO
-
-| Problema | Dettaglio |
-|----------|-----------|
-| Documentazione mista italiano/inglese | README e SPEC in italiano; esempi con commenti inglesi. Nessuna strategia monolingue. |
-| Vecchi file skill ancora presenti (`h2c_v3.md`, `orch_v1.md`, `build.md`, `test.md`) | Ingorbra la directory, confonde i nuovi lettori |
-| `Test-Sonnet4.6.md` in root vs `archive/` | File in root duplica contenuto archiviato |
-| Nessuna directory `docs/` | Tutto piatto in root — nessuna gerarchia |
-| Nessuna organizzazione `examples/` | Tutto in una cartella piatta |
-| `h2c_compress/SKILL.md` in root | Skill mescolata con root repo, non in skills/ |
-| Nessun `index.md` o punto di ingresso | I nuovi utenti non hanno percorso di navigazione |
-| Nessun `CONTRIBUTING.md` | Nessuna linea guida per contributi |
-| Nessun `ARCHITECTURE.md` | Nessuna panoramica architetturale |
-
-### 2.5 Incertezza Architetturale — ALTO
-
-| Problema | Dettaglio |
-|----------|-----------|
-| README lo chiama "protocollo" ma SPEC lo chiama "grammatica" | Confusione identitaria |
-| Nessun AST o modello semantico formale | La grammatica è definita in BNF ma nessun albero di parsing o semantica |
-| Nessuna implementazione di riferimento del parser | Nessun validatore, nessun transpiler, nessun compilatore |
-| Nessuna specifica di interoperabilità (vs MCP, JSON-RPC, ecc.) | Non chiaro come H2C si relazioni con standard esistenti |
-| Nessun modello formale di opcode | I tipi di blocco sono elencati ma nessuna semantica formale degli opcode |
-| Nessuna specifica di binding di trasporto | Come viaggia H2C? stdin/stdout? HTTP? WebSocket? |
+The repository has solid technical foundations but suffers from five critical issues that compromise discoverability, credibility, and adoption.
 
 ---
 
-## 3. Punteggi
+## 2. Issues Found
 
-| Dimensione | Punteggio (1–10) | Severità |
-|------------|:---:|:--------:|
-| Qualità codice | 7 | — |
-| Design protocollo | 8 | — |
-| Documentazione | 4 | ALTA |
-| SEO / Scopribilità | 1 | CRITICA |
-| Retrievabilità LLM | 1 | CRITICA |
-| Organizzazione strutturale | 3 | ALTA |
-| Naming / Branding | 1 | CRITICO |
-| Posizionamento ecosistema | 2 | ALTO |
-| Rigore formale | 5 | MEDIA |
-| Prontezza all'adozione | 3 | ALTA |
+### 2.1 Naming Ambiguity — CRITICAL
+
+| Issue | Detail |
+|-------|--------|
+| **HTTP/2 conflict** | `h2c` is the cleartext upgrade mechanism for HTTP/2 (RFC 7540 §3.1, `Upgrade: h2c`). Every search for "h2c protocol" returns HTTP/2 results. |
+| **Acronym overload** | H2C = "Human-to-Compressed" is semantically weak. The real value is AI-to-AI, not human-to-anything. "Compressed" suggests lossy compression. |
+| **Brand collision** | `h2c` appears in npm packages, Go libraries, and HTTP/2 middleware. SEO is effectively zero for this name. |
+| **Discoverability** | Google/Bing/GitHub searches for "h2c" do not return results for this project in the first 10 pages. |
+
+### 2.2 SEO Weakness — CRITICAL
+
+| Gap | Impact |
+|-----|--------|
+| No keyword or description in any document | Zero semantic signal for search engines |
+| Title "h2c Protocol" collides with HTTP/2 | All traffic goes to HTTP/2 documentation |
+| No structured data (JSON-LD) | No rich snippets |
+| No GitHub topics beyond "protocol" | No discovery on GitHub |
+| No `llms.txt` or `llms-full.txt` | LLM retrieval systems cannot index the protocol |
+
+### 2.3 Low LLM Retrievability — CRITICAL
+
+| Gap | Impact |
+|-----|--------|
+| Missing keywords: `semantic compression`, `AI-to-AI`, `agent orchestration`, `reasoning transport` | LLMs cannot associate H2C with these concepts |
+| README framed as "prompt compression" | Trivializes the protocol; LLMs categorize it as a low-value hack |
+| No semantic IR model | No context for retrieval systems |
+| No `llms.txt` | Cursor, Copilot, ChatGPT, Claude have no indexed context |
+
+### 2.4 Structural Inconsistency — HIGH
+
+| Issue | Detail |
+|-------|--------|
+| Mixed Italian/English documentation | README and SPEC in Italian; examples with English comments. No monolingual strategy. |
+| Old skill files still present (`h2c_v3.md`, `orch_v1.md`, `build.md`, `test.md`) | Clutters directory, confuses new readers |
+| `Test-Sonnet4.6.md` in root vs `archive/` | Root file duplicates archived content |
+| No `docs/` directory | Everything flat in root — no hierarchy |
+| No `examples/` organization | Everything in a flat folder |
+| `h2c_compress/SKILL.md` in root | Skill mixed with root repo, not in skills/ |
+| No `index.md` or entry point | New users have no navigation path |
+| No `CONTRIBUTING.md` | No contribution guidelines |
+| No `ARCHITECTURE.md` | No architectural overview |
+
+### 2.5 Architectural Uncertainty — HIGH
+
+| Issue | Detail |
+|-------|--------|
+| README calls it "protocol" but SPEC calls it "grammar" | Identity confusion |
+| No AST or formal semantic model | Grammar defined in BNF but no parse tree or semantics |
+| No reference parser implementation | No validator, no transpiler, no compiler |
+| No interoperability specification (vs MCP, JSON-RPC, etc.) | Unclear how H2C relates to existing standards |
+| No formal opcode model | Block types are listed but no formal opcode semantics |
+| No transport binding specification | How does H2C travel? stdin/stdout? HTTP? WebSocket? |
 
 ---
 
-## 4. Raccomandazioni di Remediation
+## 3. Scores
 
-| Priorità | Azione | Task |
+| Dimension | Score (1–10) | Severity |
+|-----------|:---:|:--------:|
+| Code quality | 7 | — |
+| Protocol design | 8 | — |
+| Documentation | 4 | HIGH |
+| SEO / Discoverability | 1 | CRITICAL |
+| LLM Retrievability | 1 | CRITICAL |
+| Structural organization | 3 | HIGH |
+| Naming / Branding | 1 | CRITICAL |
+| Ecosystem positioning | 2 | HIGH |
+| Formal rigor | 5 | MEDIUM |
+| Adoption readiness | 3 | HIGH |
+
+---
+
+## 4. Remediation Recommendations
+
+| Priority | Action | Task |
 |:--------:|--------|:----:|
-| P0 | Riposizionare come "Protocollo di Compressione Semantica per Comunicazione AI-to-AI" | Task 8 |
-| P0 | Disambiguare da HTTP/2 h2c in ogni documento | Task 2, 8 |
-| P0 | Aggiungere dati strutturati (JSON-LD), keyword, GitHub topics, `llms.txt` | Task 3 |
-| P0 | Creare gerarchia `docs/` con specifica, architettura, esempi | Task 4 |
-| P1 | Definire grammatica EBNF formale, modello AST, semantica opcode | Task 5 |
-| P1 | Rimuovere file vecchi/duplicati, riorganizzare esempi, archiviare contenuti deprecati | Task 4 |
-| P1 | Creare metodologia benchmark + tabelle comparative | Task 6 |
-| P1 | Definire modello di integrazione MCP (H2C = layer semantico, MCP = layer trasporto) | Task 7 |
-| P2 | Produrre strategia contenuti (blog post, talk, paper) | Task 9 |
-| P2 | Analisi formale dei rischi con barriere all'adozione | Task 10 |
+| P0 | Reposition as "Semantic Compression Protocol for AI-to-AI Communication" | Task 8 |
+| P0 | Disambiguate from HTTP/2 h2c in every document | Task 2, 8 |
+| P0 | Add structured data (JSON-LD), keywords, GitHub topics, `llms.txt` | Task 3 |
+| P0 | Create `docs/` hierarchy with specification, architecture, examples | Task 4 |
+| P1 | Define formal EBNF grammar, AST model, opcode semantics | Task 5 |
+| P1 | Remove old/duplicate files, reorganize examples, archive deprecated content | Task 4 |
+| P1 | Create benchmark methodology + comparison tables | Task 6 |
+| P1 | Define MCP integration model (H2C = semantic layer, MCP = transport layer) | Task 7 |
+| P2 | Produce content strategy (blog posts, talks, paper) | Task 9 |
+| P2 | Formal risk analysis with adoption barriers | Task 10 |

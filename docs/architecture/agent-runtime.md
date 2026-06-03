@@ -1,42 +1,42 @@
-# Modello Runtime Agenti H2C
+# H2C Agent Runtime Model
 
-**Versione:** 1.0
-**Stato:** PROGETTAZIONE
-**Scopo:** Specificare il modello di esecuzione per agenti H2C — scheduling, routing, error recovery.
+**Version:** 1.0
+**Status:** DESIGN
+**Purpose:** Specify the execution model for H2C agents — scheduling, routing, error recovery.
 
 ---
 
-## 1. Ciclo di Esecuzione Agente
+## 1. Agent Execution Cycle
 
 ```
 ┌──────────────────────┐
-│    Attesa Input      │
-│  (listen sul canale) │
+│    Wait Input        │
+│  (listen on channel) │
 └──────────┬───────────┘
            ▼
 ┌──────────────────────┐
-│   Parsing Blocco     │
-│  (grammatica EBNF)   │
+│   Block Parsing      │
+│  (EBNF grammar)      │
 └──────────┬───────────┘
            ▼
 ┌────────────────────────┐
-│   Validazione          │
-│  (regole operazionali) │
+│   Validation           │
+│  (operational rules)   │
 └──────────┬─────────────┘
     ┌──────┴──────┐
     ▼             ▼
 ┌──────────┐ ┌───────────┐
-│ Valido   │ │  Invalido │
+│ Valid    │ │ Invalid   │
 └────┬─────┘ └────┬──────┘
      ▼            ▼
 ┌──────────┐ ┌───────────┐
-│ Execute   │ │ Reject + │
-│ Action    │ │ Log      │
+│ Execute   │ │ Reject +  │
+│ Action    │ │ Log       │
 └────┬─────┘ └───────────┘
      ▼
 ┌───────────────────────┐
-│   Emetti Output       │
-│  (prossimo blocco)    │
+│   Emit Output         │
+│  (next block)         │
 └───────────────────────┘
 ```
 
@@ -44,26 +44,26 @@
 
 ## 2. Routing
 
-| Blocco Input | Mittente | Destinatario | Blocco Output |
-|-------------|----------|--------------|---------------|
-| ARCH:PLAN | Architetto | Orchestratore | BUILD:EXEC |
-| BUILD:EXEC | Orchestratore | Builder | BUILD:DONE |
-| BUILD:DONE | Builder | Orchestratore | TEST:RUN o BUILD:EXEC |
-| BUILD:FIX | Orchestratore | Builder | BUILD:DONE |
-| TEST:RUN | Orchestratore | Tester | TEST:PASS/FAIL |
-| TEST:PASS | Tester | Orchestratore | ORCH:END o BUILD:EXEC |
-| TEST:FAIL | Tester | Orchestratore | BUILD:FIX |
-| CTX:* | Orchestratore | Broadcast | — |
+| Input Block | Sender | Receiver | Output Block |
+|------------|--------|----------|--------------|
+| ARCH:PLAN | Architect | Orchestrator | BUILD:EXEC |
+| BUILD:EXEC | Orchestrator | Builder | BUILD:DONE |
+| BUILD:DONE | Builder | Orchestrator | TEST:RUN or BUILD:EXEC |
+| BUILD:FIX | Orchestrator | Builder | BUILD:DONE |
+| TEST:RUN | Orchestrator | Tester | TEST:PASS/FAIL |
+| TEST:PASS | Tester | Orchestrator | ORCH:END or BUILD:EXEC |
+| TEST:FAIL | Tester | Orchestrator | BUILD:FIX |
+| CTX:* | Orchestrator | Broadcast | — |
 
 ---
 
 ## 3. Error Recovery
 
-| Fallimento | Comportamento |
-|------------|---------------|
-| Parsing fallito | Blocco scartato, log errore |
-| Validazione fallita | Warning, tenta recovery |
-| Timeout esecuzione | ORCH:END final:timeout |
+| Failure | Behavior |
+|---------|----------|
+| Parsing failed | Block discarded, error log |
+| Validation failed | Warning, attempt recovery |
+| Execution timeout | ORCH:END final:timeout |
 | retry_n > 3 | ORCH:END final:error |
-| cycle_id duplicato | Merge context, warning |
-| Campo mancante REQUIRED | ORCH:END final:error |
+| Duplicate cycle_id | Merge context, warning |
+| Missing REQUIRED field | ORCH:END final:error |

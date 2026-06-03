@@ -1,55 +1,53 @@
-# Documentazione H2C Protocol
+# H2C Protocol Documentation
 
-Indice della documentazione tecnica del protocollo H2C Semantic Compression.
+Index of technical documentation for the H2C Semantic Compression protocol.
 
 ---
 
-## Struttura
+## Structure
 
 ```
 docs/
-├── README.md                  # Questo file
+├── README.md                  # This file
 ├── specification/
-│   ├── grammar.md             # Grammatica EBNF formale
-│   ├── blocks.md              # Riferimento blocchi
-│   └── semantics.md           # Semantica operazionale
+│   ├── grammar.md             # Formal EBNF grammar
+│   ├── blocks.md              # Block reference
+│   └── semantics.md           # Operational semantics
 ├── architecture/
-│   ├── overview.md            # Panoramica architetturale
-│   ├── agent-runtime.md       # Modello runtime agenti
-│   └── context-lifecycle.md   # Ciclo vita contesto (PRUNE/COMPACT/FREEZE)
+│   ├── overview.md            # Architectural overview
+│   ├── agent-runtime.md       # Agent runtime model
+│   └── context-lifecycle.md   # Context lifecycle (PRUNE/COMPACT/FREEZE)
 ├── examples/
-│   ├── basic/                 # Esempi base
-│   ├── advanced/              # Esempi avanzati
-│   └── integrations/          # Esempi con framework
+│   └── (examples in examples/ root)
 ├── benchmarks/
-│   └── comparison.md          # Tabelle comparative + metodologia
+│   └── comparison.md          # Comparative tables + methodology
 ├── comparisons/
-│   └── vs-alternatives.md     # Confronto con NL, JSON, YAML, MCP
+│   └── vs-alternatives.md     # Comparison with NL, JSON, YAML, MCP
 ├── ecosystem/
-│   └── integrations.md        # Modelli integrazione framework
+│   └── integrations.md        # Framework integration models
 ├── semantic-ir/
-│   └── model.md               # Modello IR semantico
+│   └── model.md               # Semantic IR model
 ├── parser/
-│   ├── architecture.md        # Architettura parser di riferimento
-│   └── schema.md              # Schema tipizzato JSON per validazione
+│   ├── architecture.md        # Reference parser architecture
+│   └── schema.md              # Typed JSON schema for validation
 ├── compiler/
-│   └── pipeline.md            # Pipeline compilatore/transpiler H2C
+│   └── pipeline.md            # Compiler/transpiler pipeline
 ├── agent-runtime/
-│   └── protocol.md            # Specifica runtime agenti
+│   └── protocol.md            # Agent runtime specification
 ├── risks/
-│   └── analysis.md            # Analisi rischi SWOT
-└── CONTRIBUTING.md            # Linee guida contributi
+│   └── analysis.md            # SWOT risk analysis
+└── (CONTRIBUTING.md in root/)  # Contribution guidelines
 ```
 
 ---
 
-## Percorsi di Lettura Consigliati
+## Recommended Reading Paths
 
-| Se sei... | Leggi... |
-|-----------|----------|
-| Nuovo al protocollo | `../README.md` → `../SPEC.md` → `docs/specification/grammar.md` |
-| Sviluppatore framework agenti | `docs/ecosystem/integrations.md` → `docs/architecture/overview.md` |
-| Ricercatore | `docs/specification/semantics.md` → `docs/benchmarks/comparison.md` |
-| Contributore OSS | `docs/parser/architecture.md` → `docs/parser/schema.md` → `docs/specification/blocks.md` |
-| Implementatore parser | `docs/parser/architecture.md` → `docs/parser/schema.md` → `docs/compiler/pipeline.md` |
-| Architetto enterprise | `docs/positioning/README.md` → `docs/architecture/overview.md` |
+| If you are... | Read... |
+|--------------|---------|
+| New to the protocol | `../README.md` → `../SPEC.md` → `docs/specification/grammar.md` |
+| Framework developer | `docs/ecosystem/integrations.md` → `docs/architecture/overview.md` |
+| Researcher | `docs/specification/semantics.md` → `docs/benchmarks/comparison.md` |
+| OSS contributor | `docs/parser/architecture.md` → `docs/parser/schema.md` → `docs/specification/blocks.md` |
+| Parser implementor | `docs/parser/architecture.md` → `docs/parser/schema.md` → `docs/compiler/pipeline.md` |
+| Enterprise architect | `docs/comparisons/vs-alternatives.md` → `docs/architecture/overview.md` |

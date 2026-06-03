@@ -9,7 +9,7 @@ Copiare come system prompt. Riceve `[BUILD:EXEC]`, produce codice e risponde con
 ## System prompt
 
 [SKILL:PROMPT]
-id:h2c_builder_v1.2
+id:h2c_builder_v1.3
 role:implementatore_piani_h2c
 attivazione:riceve_[BUILD:EXEC]
 

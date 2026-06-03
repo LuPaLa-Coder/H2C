@@ -1,35 +1,35 @@
-# Integrazione Ecosistema H2C
+# H2C Ecosystem Integration
 
-**Versione:** 1.0
-**Stato:** PROGETTAZIONE
-**Scopo:** Definire i modelli di integrazione tra H2C e i principali framework agenti.
+**Version:** 1.0
+**Status:** DRAFT
+**Scope:** Define integration patterns between H2C and major agent frameworks.
 
 ---
 
-## 1. Modello Architetturale
+## 1. Architectural Model
 
 ```
-H2C = Semantic Layer     (grammatica + opcode + stato)
-MCP = Transport Layer    (protocollo trasporto + tool call)
+H2C = Semantic Layer     (grammar + opcode + state)
+MCP = Transport Layer    (transport protocol + tool call)
 
-H2C definisce COSA comunicare
-MCP definisce COME trasportare
+H2C defines WHAT to communicate
+MCP defines HOW to transport
 ```
 
 ---
 
 ## 2. MCP (Model Context Protocol)
 
-**Ruolo:** H2C fluisce come contenuto di tool call MCP.
+**Role:** H2C flows as MCP tool call content.
 
 ```
 ┌─────────────┐         MCP Tool Call         ┌─────────────┐
-│  Client MCP │ ─── [H2C block as content] ──→│  Server MCP │
-│  (Agente A) │ ←── [H2C block as result ] ───│  (Agente B) │
+│  MCP Client │ ─── [H2C block as content] ──→│  MCP Server │
+│  (Agent A)  │ ←── [H2C block as result ] ───│  (Agent B)  │
 └─────────────┘                               └─────────────┘
 ```
 
-### Schema Integrazione
+### Integration Schema
 
 ```json
 // MCP tool definition per H2C
@@ -48,7 +48,7 @@ MCP definisce COME trasportare
 }
 ```
 
-### Esempio
+### Example
 ```
 // MCP transport carrying H2C content
 {
@@ -63,7 +63,7 @@ MCP definisce COME trasportare
 
 ## 3. LangGraph
 
-**Ruolo:** H2C come formato output dei nodi e schema stato del grafo.
+**Role:** H2C as node output format and graph state schema.
 
 ```
 ┌───────────┐    H2C Block   ┌──────────┐    H2C Block   ┌──────────┐
@@ -94,7 +94,7 @@ class AgentState(TypedDict):
 
 ## 4. AutoGen
 
-**Ruolo:** H2C come protocollo di risposta tra agenti conversazionali.
+**Role:** H2C as response protocol between conversational agents.
 
 ```
 User → [Architect Agent] → H2C → [Orchestrator Agent] → H2C → [Builder Agent]
@@ -121,7 +121,7 @@ response = architect.generate_reply(
 
 ## 5. Semantic Kernel
 
-**Ruolo:** H2C come formato di serializzazione per risultati di funzione.
+**Role:** H2C as serialization format for function results.
 
 ```csharp
 // SK function returning H2C
@@ -144,7 +144,7 @@ public async Task<string> ExecuteBuildAsync(
 
 ## 6. CrewAI
 
-**Ruolo:** H2C come formato di output dei task tra agenti Crew.
+**Role:** H2C as task output format between Crew agents.
 
 ```python
 from crewai import Task, Agent
@@ -166,7 +166,7 @@ plan = Task(
 
 ## 7. OpenAI Agents SDK
 
-**Ruolo:** H2C come formato output strutturato.
+**Role:** H2C as structured output format.
 
 ```python
 from agents import Agent
@@ -183,15 +183,15 @@ result = await Runner.run(architect_agent, prompt)
 
 ---
 
-## 8. Tabella Riepilogativa
+## 8. Summary Table
 
-| Framework | Integrazione | Stato |
-|-----------|-------------|:-----:|
-| MCP | Contenuto tool call | Progettazione |
-| LangGraph | Formato stato nodo | Progettazione |
-| AutoGen | Formato risposta agente | Progettazione |
-| Semantic Kernel | Risultato funzione | Progettazione |
-| CrewAI | Output task | Progettazione |
-| OpenAI Agents | Output strutturato | Progettazione |
+| Framework | Integration | Status |
+|-----------|-------------|:------:|
+| MCP | Tool call content | Design |
+| LangGraph | Node state format | Design |
+| AutoGen | Agent response format | Design |
+| Semantic Kernel | Function result | Design |
+| CrewAI | Task output | Design |
+| OpenAI Agents | Structured output | Design |
 
-Tutte le integrazioni sono in fase di progettazione. Contributi benvenuti.
+All integrations are in the design phase. Contributions welcome.

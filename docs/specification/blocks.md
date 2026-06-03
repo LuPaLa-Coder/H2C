@@ -1,194 +1,194 @@
-# Riferimento Blocchi H2C
+# H2C Block Reference
 
-**Versione:** 1.2
-**Stato:** COMPLETO
-**Scopo:** Guida di riferimento rapido per tutti i blocchi H2C, campi, regole e pattern.
-
----
-
-## Indice Blocchi
-
-| Tipo | Sottotipo | Ruolo | Obbligatorio |
-|------|-----------|-------|:------------:|
-| ARCH | PLAN | Piano architetturale | Sì (1 per catena) |
-| BUILD | EXEC | Richiesta implementazione | Sì |
-| BUILD | DONE | Implementazione completata | Sì |
-| BUILD | FIX | Richiesta correzione | Se TEST:FAIL |
-| BUILD | REVERT | Rollback revisione | Raro |
-| TEST | RUN | Richiesta test | Sì |
-| TEST | PASS | Test superato | O PASS o FAIL |
-| TEST | FAIL | Test fallito | O FAIL o PASS |
-| CTX | PRIMITIVES | Snapshot stato iniziale | Sì (catene >5 msg) |
-| CTX | UPDATE | Aggiornamento layer | Ogni cambio layer |
-| CTX | PRUNE | Pulizia finestra attiva | Ogni 5 msg |
-| CTX | COMPACT | Compattazione storia | Ogni 20 msg |
-| CTX | FREEZE | Congelamento baseline | ~100 msg |
-| STATE | FINDINGS | Risultato analisi | Opzionale |
-| STATE | ACK | Accusa protocollo | 1x (dopo PLAN) |
-| ORCH | END | Chiusura ciclo | Sì (1 per catena) |
-| SKILL | PROMPT | Definizione agente | Skills |
+**Version:** 1.3
+**Status:** COMPLETE
+**Purpose:** Quick reference guide for all H2C blocks, fields, rules, and patterns.
 
 ---
 
-## Dettaglio Blocchi
+## Block Index
+
+| Type | Subtype | Role | Mandatory |
+|------|---------|------|:---------:|
+| ARCH | PLAN | Architectural plan | Yes (1 per chain) |
+| BUILD | EXEC | Implementation request | Yes |
+| BUILD | DONE | Implementation completed | Yes |
+| BUILD | FIX | Correction request | If TEST:FAIL |
+| BUILD | REVERT | Revision rollback | Rare |
+| TEST | RUN | Test request | Yes |
+| TEST | PASS | Test passed | Either PASS or FAIL |
+| TEST | FAIL | Test failed | Either FAIL or PASS |
+| CTX | PRIMITIVES | Initial state snapshot | Yes (chains >5 msgs) |
+| CTX | UPDATE | Layer update | Every layer change |
+| CTX | PRUNE | Active window cleanup | Every 5 msgs |
+| CTX | COMPACT | History compaction | Every 20 msgs |
+| CTX | FREEZE | Baseline freeze | ~100 msgs |
+| STATE | FINDINGS | Analysis result | Optional |
+| STATE | ACK | Protocol acknowledgment | 1x (after PLAN) |
+| ORCH | END | Cycle closure | Yes (1 per chain) |
+| SKILL | PROMPT | Agent definition | Skills |
+
+---
+
+## Block Details
 
 ### ARCH:PLAN
 ```
-Scopo:    Tradurre prompt umano in piano strutturato
-Emesso da: Architetto
-Ricevuto da: Orchestratore
-Frequenza: 1 per catena (raro: 2-3 se cambio scenario)
+Purpose:   Translate human prompt into structured plan
+Emitted by: Architect
+Received by: Orchestrator
+Frequency: 1 per chain (rare: 2-3 if scenario changes)
 
-Campi:
-  id:<string>         Identificativo unico piano
-  fw:<string>         Framework/linguaggio target
-  lib:<string>        Librerie (separate da virgola)
-  auth:<string>       Schema autenticazione
-  pattern:<string>    Pattern architetturale
-  tools:<list>        Strumenti/funzionalità
-  struct:<list>       Struttura file
-  deps:<string>       Dipendenze esterne
-  notes:<list>        Note aggiuntive
+Fields:
+  id:<string>         Unique plan identifier
+  fw:<string>         Target framework/language
+  lib:<string>        Libraries (comma-separated)
+  auth:<string>       Authentication scheme
+  pattern:<string>    Architectural pattern
+  tools:<list>        Tools/functionalities
+  struct:<list>       File structure
+  deps:<string>       External dependencies
+  notes:<list>        Additional notes
 ```
 
 ### BUILD:EXEC
 ```
-Scopo:    Richiedere implementazione di un componente
-Emesso da: Orchestratore
-Ricevuto da: Builder
-Frequenza: 1 per componente
+Purpose:   Request implementation of a component
+Emitted by: Orchestrator
+Received by: Builder
+Frequency: 1 per component
 
-Campi:
-  id:<string>         Identificativo build
-  target:<string>     File/componente target
-  after:<list>        Dipendenze DAG (id prerequisiti)
-  desc:<string>       Descrizione implementazione
-  cmd:<string>        Comando build (es. dotnet build)
+Fields:
+  id:<string>         Build identifier
+  target:<string>     File/component target
+  after:<list>        DAG dependencies (prerequisite ids)
+  desc:<string>       Implementation description
+  cmd:<string>        Build command (e.g. dotnet build)
 ```
 
 ### BUILD:DONE
 ```
-Scopo:    Notificare completamento implementazione
-Emesso da: Builder
-Ricevuto da: Orchestratore
-Frequenza: 1 per BUILD:EXEC o BUILD:FIX
+Purpose:   Notify implementation completion
+Emitted by: Builder
+Received by: Orchestrator
+Frequency: 1 per BUILD:EXEC or BUILD:FIX
 
-Campi:
-  id:<string>         Matcha BUILD:EXEC.id
-  diff:<list_rev>     Modifiche [file~rev,+lines,file~rev,-lines]
-  rev:<int>           Revisione file (default 1)
-  notes:<list>        Note implementazione
-  cycle_id:<string>   Se emesso per FIX
+Fields:
+  id:<string>         Matches BUILD:EXEC.id
+  diff:<list_rev>     Changes [file~rev,+lines,file~rev,-lines]
+  rev:<int>           File revision (default 1)
+  notes:<list>        Implementation notes
+  cycle_id:<string>   If emitted for FIX
 ```
 
 ### BUILD:FIX
 ```
-Scopo:    Richiedere correzione su implementazione
-Emesso da: Orchestratore
-Ricevuto da: Builder
-Frequenza: 1 per ciclo fix
+Purpose:   Request correction on implementation
+Emitted by: Orchestrator
+Received by: Builder
+Frequency: 1 per fix cycle
 
-Campi:
-  id:<string>         Identificativo fix
-  target:<string>     File da correggere
-  base_rev:<int>      Revisione base su cui applicare fix
-  desc:<string>       Descrizione errore/correzioni
-  cycle_id:<string>   Identificativo ciclo fix
-  retry_n:<int>       Numero tentativo (1-3)
-  cmd:<string>        Comando verifica
+Fields:
+  id:<string>         Fix identifier
+  target:<string>     File to correct
+  base_rev:<int>      Base revision to apply fix on
+  desc:<string>       Error/correction description
+  cycle_id:<string>   Fix cycle identifier
+  retry_n:<int>       Attempt number (1-3)
+  cmd:<string>        Verification command
 ```
 
 ### TEST:RUN
 ```
-Scopo:    Eseguire test suite
-Emesso da: Orchestratore
-Ricevuto da: Tester
-Frequenza: 1 per suite
+Purpose:   Execute test suite
+Emitted by: Orchestrator
+Received by: Tester
+Frequency: 1 per suite
 
-Campi:
-  id:<string>         Identificativo test
-  cmd:<string>        Comando da eseguire
+Fields:
+  id:<string>         Test identifier
+  cmd:<string>        Command to execute
 ```
 
 ### TEST:PASS / TEST:FAIL
 ```
-Scopo:    Notificare esito test
-Emesso da: Tester
-Ricevuto da: Orchestratore
-Frequenza: 1 per TEST:RUN
+Purpose:   Notify test outcome
+Emitted by: Tester
+Received by: Orchestrator
+Frequency: 1 per TEST:RUN
 
-Campi (PASS):
-  id:<string>         Matcha TEST:RUN.id
-  cycle_id:<string>   Richiesto se chiude ciclo fix
-  pass_count:<int>    Contatore superati
+Fields (PASS):
+  id:<string>         Matches TEST:RUN.id
+  cycle_id:<string>   Required if closing a fix cycle
+  pass_count:<int>    Passed counter
 
-Campi (FAIL):
-  id:<string>         Matcha TEST:RUN.id
-  error:<string>      Messaggio errore
-  cycle_id:<string>   Obbligatorio (apre ciclo fix)
-  fail_count:<int>    Contatore falliti
-  pass_count:<int>    Contatore superati (parziale)
+Fields (FAIL):
+  id:<string>         Matches TEST:RUN.id
+  error:<string>      Error message
+  cycle_id:<string>   Mandatory (opens fix cycle)
+  fail_count:<int>    Failed counter
+  pass_count:<int>    Passed counter (partial)
 ```
 
 ### CTX:PRUNE
 ```
-Scopo:    Purgare messaggi non necessari dalla finestra attiva
-Emesso da: Qualsiasi agente
-Frequenza: Ogni 5 messaggi
+Purpose:   Purge unnecessary messages from active window
+Emitted by: Any agent
+Frequency: Every 5 messages
 
-Campi:
-  keep:<string/list>  "last_N" o lista ids da mantenere
-  pruned:<list>       Lista ids rimossi
-  reason:<string>     Spiegazione pruning
+Fields:
+  keep:<string/list>  "last_N" or list of ids to keep
+  pruned:<list>       List of removed ids
+  reason:<string>     Pruning explanation
 ```
 
 ### CTX:COMPACT
 ```
-Scopo:    Compattare storia cumulativa in riassunto
-Emesso da: Orchestratore
-Frequenza: Ogni 20 messaggi
+Purpose:   Compact cumulative history into summary
+Emitted by: Orchestrator
+Frequency: Every 20 messages
 
-Campi:
-  summary:<list>      Riassunto (max 5 voci)
-  keep_active:<list>  File ancora in modifica attiva
-  pruned_history:<str> Range storia potata
-  pass_count:<int>    Contatore cumulativo
-  fail_count:<int>    Contatore cumulativo
+Fields:
+  summary:<list>      Summary (max 5 entries)
+  keep_active:<list>  Files still under active modification
+  pruned_history:<str> Pruned history range
+  pass_count:<int>    Cumulative counter
+  fail_count:<int>    Cumulative counter
 ```
 
 ### CTX:FREEZE
 ```
-Scopo:    Congelare baseline quando COMPACT non basta
-Emesso da: Orchestratore
-Frequenza: Una volta, ~100 messaggi
+Purpose:   Freeze baseline when COMPACT is insufficient
+Emitted by: Orchestrator
+Frequency: Once, ~100 messages
 
-Campi:
-  snapshot:<list>     Tutti i file attivi con revisione
-  baseline:<int>      Numero messaggio al freeze
+Fields:
+  snapshot:<list>     All active files with revision
+  baseline:<int>      Message number at freeze
 ```
 
 ---
 
-## Pattern di Flusso
+## Flow Patterns
 
-### Flusso Base (nessun errore)
+### Base Flow (no errors)
 ```
 ARCH:PLAN → BUILD:EXEC → BUILD:DONE → TEST:RUN → TEST:PASS → ORCH:END
 ```
 
-### Flusso con Fix
+### Fix Flow
 ```
 TEST:RUN → TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:RUN → TEST:PASS
 ```
 
-### Flusso Multi-Step con DAG
+### Multi-Step Flow with DAG
 ```
 BUILD:EXEC (m1) ──→ BUILD:EXEC (m2) ──→ BUILD:EXEC (m4)
       │                                         │
       └──→ BUILD:EXEC (m3) ─────────────────────┘
 ```
 
-### Flusso lungo con Context Lifecycle
+### Long Flow with Context Lifecycle
 ```
 ARCH:PLAN → BUILD:EXEC × N → CTX:PRUNE → BUILD:EXEC × N → CTX:PRUNE
 → CTX:COMPACT → BUILD:EXEC × N → ... → CTX:FREEZE → ... → ORCH:END

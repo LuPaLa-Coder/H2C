@@ -1,33 +1,33 @@
-# Architettura del Parser — Protocollo H2C
+# Parser Architecture — H2C Protocol
 
-**Versione:** 1.0
-**Stato:** PROGETTAZIONE
-**Scopo:** Definire l'architettura di riferimento del parser per il protocollo H2C — scanning, parsing, costruzione AST e recovery errori.
+**Version:** 1.0
+**Status:** DRAFT
+**Scope:** Define the reference parser architecture for the H2C protocol — scanning, parsing, AST construction, and error recovery.
 
 ---
 
 ## 1. Pipeline
 
 ```
-Input (testo)
+Input (text)
      │
      ▼
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Scanner   │───→│   Parser    │───→│   Builder   │───→│   AST       │
-│ (tokenizer) │    │ (grammatica)│    │ (semantica) │    │ (output)    │
+│ (tokenizer) │    │ (grammar)   │    │ (semantics) │    │ (output)    │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
      │                   │                    │
      ▼                   ▼                    ▼
-  Flusso             Errori di             Validazione
-  Token              Parsing               Semantica
+  Token              Parsing              Semantic
+  Stream             Errors               Validation
 ```
 
 ## 2. Scanner (Tokenizer)
 
-### 2.1 Tipi di Token
+### 2.1 Token Types
 
 ```
-Token          Regex                          Esempio
+Token          Regex                          Example
 ────────────────────────────────────────────────────────────────────
 LBRACKET       \[                            [
 RBRACKET       \]                            ]
@@ -38,41 +38,41 @@ TILDE          ~                             ~
 TYPE           ARCH|BUILD|TEST|CTX|STATE|ORCH|SKILL
 SUBTYPE        PLAN|EXEC|DONE|FIX|REVERT|RUN|PASS|FAIL|...
 KEY            [a-zA-Z_][a-zA-Z0-9_]*
-STRING         [^\[\]\|\n:,\~]+              python3.11, fastapi
+STRING         [^\[\]\|\n]+                  python3.11
 INTEGER        [0-9]+                        42
 NEWLINE        \n                            \n
-EOF            fine input
+EOF            end of input
 ```
 
-### 2.2 Algoritmo di Scansione
+### 2.2 Scanning Algorithm
 
 ```
 scan(input):
   pos = 0
   tokens = []
   while pos < len(input):
-    salta spazi (tranne newline)
-    if input[pos] == '[': emetti(LBRACKET); pos++
-    elif input[pos] == ']': emetti(RBRACKET); pos++
-    elif input[pos] == ':': emetti(COLON); pos++
-    elif input[pos] == '|': emetti(PIPE); pos++
-    elif input[pos] == ',': emetti(COMMA); pos++
-    elif input[pos] == '~': emetti(TILDE); pos++
+    skip spaces (except newlines)
+    if input[pos] == '[': emit(LBRACKET); pos++
+    elif input[pos] == ']': emit(RBRACKET); pos++
+    elif input[pos] == ':': emit(COLON); pos++
+    elif input[pos] == '|': emit(PIPE); pos++
+    elif input[pos] == ',': emit(COMMA); pos++
+    elif input[pos] == '~': emit(TILDE); pos++
     elif input[pos] == '\n':
-      emetti(NEWLINE); pos++
-    elif match(TYPE):  emetti(TYPE);  pos += len(match)
-    elif match(SUBTYPE): emetti(SUBTYPE); pos += len(match)
-    elif match(KEY):  emetti(KEY); pos += len(match)
-    elif match(INTEGER): emetti(INTEGER); pos += len(match)
-    else: emetti(STRING); pos++
-  emetti(EOF)
+      emit(NEWLINE); pos++
+    elif match(TYPE):  emit(TYPE);  pos += len(match)
+    elif match(SUBTYPE): emit(SUBTYPE); pos += len(match)
+    elif match(KEY):  emit(KEY); pos += len(match)
+    elif match(INTEGER): emit(INTEGER); pos += len(match)
+    else: emit(STRING); pos++
+  emit(EOF)
 ```
 
-## 3. Parser (Guidato dalla Grammatica)
+## 3. Parser (Grammar-Driven)
 
-### 3.1 Traduzione della Grammatica
+### 3.1 Grammar Translation
 
-La grammatica EBNF (`docs/specification/grammar.md`) si traduce in metodi del parser:
+The EBNF grammar (`docs/specification/grammar.md`) is translated into parser methods:
 
 ```
 message()    → block()
@@ -87,7 +87,7 @@ type()       → TYPE
 subtype()    → SUBTYPE
 ```
 
-### 3.2 Parser Ricorsivo Discendente
+### 3.2 Recursive Descent Parser
 
 ```
 parse_block():
@@ -119,9 +119,9 @@ parse_value():
   else: return StringValue(expect(STRING))
 ```
 
-## 4. Modello AST
+## 4. AST Model
 
-### 4.1 Gerarchia dei Tipi
+### 4.1 Type Hierarchy
 
 ```
 Node
@@ -133,9 +133,9 @@ Node
   │    └── fields: Field[]
   ├── Field
   │    ├── key: string
-  │    ├── is_ctx_field: bool  (prefisso ~)
+  │    ├── is_ctx_field: bool  (prefix ~)
   │    └── value: Value
-  ├── Value (astratto)
+  ├── Value (abstract)
   │    ├── StringValue: string
   │    ├── ListValue: string[]
   │    ├── RevisionValue: { file: string, rev: int }
@@ -144,7 +144,7 @@ Node
   └── Subtype: enum
 ```
 
-### 4.2 Esempio di AST
+### 4.2 AST Example
 
 Input:
 ```
@@ -167,40 +167,40 @@ AST:
 }
 ```
 
-## 5. Gestione Errori
+## 5. Error Handling
 
-### 5.1 Tipi di Errore
+### 5.1 Error Types
 
-| Errore | Rilevamento | Recupero |
-|--------|-------------|----------|
-| Token inaspettato | Il parser vede token non valido per la grammatica | Salta fino al prossimo `[` o EOF |
-| Campo REQUIRED mancante | Il validatore controlla dopo il parsing | Warning + blocco scartato |
-| Tipo/sottotipo non valido | Il parser valida contro l'enum | Salta blocco, continua |
-| Valore malformato | Lo scanner non riconosce alcun token | Emetti come StringValue |
-| Parentesi non chiusa | Scanner: conteggio mismatch | Errore a livello di linea |
+| Error | Detection | Recovery |
+|-------|-----------|----------|
+| Unexpected token | Parser sees invalid token for grammar | Skip to next `[` or EOF |
+| Missing REQUIRED field | Validator checks after parsing | Warning + block discarded |
+| Invalid type/subtype | Parser validates against enum | Skip block, continue |
+| Malformed value | Scanner doesn't recognize any token | Emit as StringValue |
+| Unclosed bracket | Scanner: mismatch count | Line-level error |
 
-### 5.2 Strategia di Recupero
+### 5.2 Recovery Strategy
 
 ```
 parse_until_next_block():
   while peek() != LBRACKET and peek() != EOF:
-    consume()     # salta rumore
+    consume()     # skip noise
   if peek() == LBRACKET:
     return parse_block()
   return null
 ```
 
-## 6. Percorsi Implementativi
+## 6. Implementation Paths
 
-| Linguaggio | Strategia | Consigliato Per |
-|------------|-----------|----------------|
-| Python | `re` + discendente ricorsivo manuale | Prototipazione, CLI |
-| Rust | `nom` o `pest` parser combinatori | Parser produzione, WASM |
-| TypeScript | Chevrotain o manuale | Browser, MCP |
-| Go | `text/scanner` + discendente ricorsivo | Embedded leggero |
-| C# | Superpower o Sprache | .NET ecosistema |
+| Language | Strategy | Recommended For |
+|----------|----------|-----------------|
+| Python | `re` + manual recursive descent | Prototyping, CLI |
+| Rust | `nom` or `pest` parser combinators | Production parser, WASM |
+| TypeScript | Chevrotain or manual | Browser, MCP |
+| Go | `text/scanner` + recursive descent | Lightweight embedded |
+| C# | Superpower or Sprache | .NET ecosystem |
 
-### Esempio: Parser Python Minimo (75 linee)
+### Example: Minimal Python Parser (75 lines)
 
 ```python
 import re
@@ -216,7 +216,7 @@ TOKEN_SPEC = [
     ('KEY', r'[a-zA-Z_][a-zA-Z0-9_]*'),
     ('INTEGER', r'[0-9]+'),
     ('NEWLINE', r'\n'),
-    ('STRING', r'[^\[\]\|\n:,\~]+'),
+    ('STRING', r'[^\[\]\|\n]+'),
 ]
 token_re = '|'.join(f'(?P<{n}>{p})' for n, p in TOKEN_SPEC)
 

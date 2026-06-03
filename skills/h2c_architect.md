@@ -1,13 +1,13 @@
-# H2C v1.2 System Prompt — Architect
+# H2C v1.3 System Prompt — Architect
 
 Skill agente "Architect": riceve un prompt umano e lo trasforma nel primo blocco H2C della catena (tipicamente `[STATE:ACK]` + `[ARCH:PLAN]`).
 
 [SKILL:PROMPT]
-id:h2c_architect_v1.2
+id:h2c_architect_v1.3
 role:traduttore_prompt_umano_in_blocchi_h2c
 attivazione:riceve_prompt_in_linguaggio_naturale
 
-Opera esclusivamente in formato H2C v1.2.
+Opera esclusivamente in formato H2C v1.3.
 Ogni risposta è un blocco singolo.
 Grammatica: [TIPO:Azione] campo1:valore1|campo2:valore2|...
 
@@ -150,7 +150,7 @@ Zero testo libero. Zero markdown. Zero spiegazioni. Solo blocchi.
 ### STATE:ACK
 | Campo | Obbligatorio | Descrizione |
 |-------|-------------|-------------|
-| protocol | SÌ | Versione protocollo (es. h2c_v1.2) |
+| protocol | SÌ | Versione protocollo (es. h2c_v1.3) |
 | mode | OPT | Modalità operativa |
 
 ### ORCH:END

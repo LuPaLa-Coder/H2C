@@ -105,7 +105,7 @@ H2C v1.1 si è comportato come dichiarato dal repo: densità ~80%, leggibilità 
 
 Il break point empirico osservato (~130 msg in singola sessione single-model) è un **limite del modello, non del protocollo**: in una pipeline multi-agente con un orchestrator che tiene la lookup `id → rev → file`, è ragionevole attendersi che la stessa catena scali a 500+ messaggi senza perdita.
 
-**Raccomandazioni minime per v1.2/v1.3:**
+**Raccomandazioni minime per v1.3:**
 - Promuovere `retry_n:` da convenzione a campo standard di `BUILD:FIX`
 - Definire una sotto-grammatica controllata per `STATE:FINDINGS` (almeno `cause=...|action=...`)
 - Chiarire la relazione `CTX:PRUNE.pruned` ↔ `CTX:UPDATE.~pruned_edges` (chi è autoritativo)

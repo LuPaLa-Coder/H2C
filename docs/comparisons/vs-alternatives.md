@@ -1,98 +1,94 @@
-# H2C vs Alternative
+# H2C vs Alternatives
 
-**Versione:** 1.0
-**Stato:** COMPLETO
-**Scopo:** Confronto strutturato tra H2C e altri formati/approcci per comunicazione AI-to-AI.
+**Version:** 1.0
+**Status:** COMPLETE
+**Purpose:** Structured comparison between H2C and other formats/approaches for AI-to-AI communication.
 
 ---
 
-## 1. Linguaggio Naturale
+## 1. Natural Language
 
-| Dimensione | NL | H2C |
-|------------|:--:|:---:|
-| Token | ~5.000/ciclo | ~200/ciclo |
-| Analizzabilità | Nessuna | Completa |
-| Parsing automatico | Impossibile | EBNF formale |
-| Versioning | Assente | rev/base_rev |
-| Cicli fix | Impliciti | Espliciti (cycle_id) |
-| Cross-modello | Fragile | Zero-shot |
-| Overhead protocollo | 30-50% | 5-10% |
+| Dimension | NL | H2C |
+|-----------|:---:|:---:|
+| Tokens | ~5,000/cycle | ~200/cycle |
+| Analyzability | None | Complete |
+| Automatic parsing | Impossible | Formal EBNF |
+| Versioning | Absent | rev/base_rev |
+| Fix cycles | Implicit | Explicit (cycle_id) |
+| Cross-model | Fragile | Zero-shot |
+| Protocol overhead | 30-50% | 5-10% |
 
-**Conclusione:** NL è il baseline — flessibile ma inadatto per automazione agente.
+**Conclusion:** NL is the baseline — flexible but unsuitable for agent automation.
 
 ---
 
 ## 2. JSON / JSON Schema
 
-| Dimensione | JSON | H2C |
-|------------|:----:|:---:|
-| Token (piano architetturale) | ~1.200 | ~50 |
-| Schema formale | JSON Schema | EBNF |
-| Tipi nativi | string, number, bool, null, array, object | string, list, revision, int |
-| Semantiche agente | Nessuna | cycle_id, retry_n, PRUNE/COMPACT/FREEZE |
-| Versioni file | Manuale | Nativo (file~N) |
-| Supporto liste | [] | [] |
-| Densità semantica | Media | Molto Alta |
+| Dimension | JSON | H2C |
+|-----------|:----:|:---:|
+| Tokens (architectural plan) | ~1,200 | ~50 |
+| Formal schema | JSON Schema | EBNF |
+| Native types | string, number, bool, null, array, object | string, list, revision, int |
+| Agent semantics | None | cycle_id, retry_n, PRUNE/COMPACT/FREEZE |
+| File versioning | Manual | Native (file~N) |
+| List support | [] | [] |
+| Semantic density | Medium | Very High |
 
-**Conclusione:** JSON è più verboso (+40-60% token) e non ha semantiche agente. Utile come target di transpiler per interoperabilità.
+**Conclusion:** JSON is more verbose (+40-60% tokens) and lacks agent semantics. Useful as transpiler target for interoperability.
 
 ---
 
 ## 3. YAML
 
-| Dimensione | YAML | H2C |
-|------------|:----:|:---:|
-| Token | ~9.500/ciclo 3 ag | ~200/ciclo |
-| Leggibilità umana | Alta | Alta |
-| Parsing | Ambiguo (indentazione) | Non ambiguo (separatori \|) |
-| Densità | 5 file, 20 righe per blocco | 1 riga per blocco |
-| Semantiche agente | Nessuna | Native |
+| Dimension | YAML | H2C |
+|-----------|:----:|:---:|
+| Tokens | ~9,500/3-agent cycle | ~200/cycle |
+| Human readability | High | High |
+| Parsing | Ambiguous (indentation) | Unambiguous (| separators) |
+| Density | 5 files, 20 lines per block | 1 line per block |
+| Agent semantics | None | Native |
 
-**Conclusione:** YAML è il più verboso tra i formati strutturati. L'indentazione complica il parsing LLM.
+**Conclusion:** YAML is the most verbose among structured formats. Indentation complicates LLM parsing.
 
 ---
 
 ## 4. MCP (Model Context Protocol)
 
-| Dimensione | MCP | H2C |
-|------------|:---:|:---:|
-| Ruolo | Trasporto | Semantica |
-| Tipo | Tool call protocol | Agent communication protocol |
-| Token (tool call) | ~300 | — |
-| Overhead | JSON-RPC + protocollo | Zero |
-| Agenti nativi | No | Sì |
-| Stato | No | Sì (cycle_id, rev, findings) |
-| Gestione contesto | No | Sì (PRUNE/COMPACT/FREEZE) |
+| Dimension | MCP | H2C |
+|-----------|:---:|:---:|
+| Purpose | Tool invocation | Agent communication |
+| Layer | Transport | Semantic |
+| Token overhead | ~300/call | ~15/block |
+| State machine | None | Built-in |
+| Context management | None | PRUNE/COMPACT/FREEZE |
+| Fix cycles | External logic | Native (cycle_id, retry_n) |
+| Relationship | — | H2C blocks can be transported via MCP |
 
-**Conclusione:** MCP e H2C sono **complementari**. MCP definisce come trasportare, H2C definisce cosa trasportare.
+**Conclusion:** MCP and H2C are complementary. MCP transports; H2C communicates. They work best together.
 
 ---
 
-## 5. Tabella Riepilogativa
+## 5. Summary Table
 
 | Feature | NL | JSON | YAML | MCP | H2C |
 |---------|:--:|:----:|:----:|:---:|:---:|
-| Zero dipendenze | ✓ | ~ | ~ | ✗ | ✓ |
-| LLM-native | ✓ | ✗ | ✗ | ✗ | ✓ |
-| Token efficiente | ✗ | ✗ | ✗ | ✗ | ✓ |
-| Parsing formale | ✗ | ✓ | ✓ | ✓ | ✓ |
-| Semantiche agente | ✗ | ✗ | ✗ | ~ | ✓ |
-| Gestione contesto | ✗ | ✗ | ✗ | ✗ | ✓ |
-| Retrocompatibilità | N/A | N/A | N/A | Per versione | ✓ |
-| Ecosistema maturo | N/A | ✓ | ✓ | ✓ | ✗ |
-| Implementazione ref | N/A | ✓ | ✓ | ✓ | ✗ |
+| Token efficiency | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Formal grammar | ✗ | JSON Schema | ✗ | ✗ | EBNF |
+| Agent semantics | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Context pruning | ✗ | ✗ | ✗ | ✗ | ✓ |
+| File versioning | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Fix cycles (retry) | ✗ | ✗ | ✗ | ✗ | ✓ |
+| LLM zero-shot | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Human readable | ✓ | ✗ | ✓ | ✗ | ✓ |
 
 ---
 
-## 6. Quando Usare Cosa
+## 6. When to Use What
 
-| Scenario | Scegli |
-|----------|--------|
-| Prompt umano singolo | NL |
-| Archiviazione dati strutturati | JSON |
-| Configurazione leggibile | YAML |
-| Tool call standardizzato | MCP |
-| Comunicazione AI-to-AI efficiente | H2C |
-| Interoperabilità con sistemi esistenti | H2C → JSON (transpiler) |
-| Produzione con MCP | H2C + MCP |
-| Debug e audit | H2C + NL commenti |
+| If you need... | Use... |
+|----------------|--------|
+| Human-agent communication | NL (input) → H2C (protocol) |
+| API integration | JSON (via transpiler) |
+| Configuration files | YAML |
+| Tool invocation | MCP (transport) + H2C (payload) |
+| Agent-to-agent chain | **H2C** (native) |
