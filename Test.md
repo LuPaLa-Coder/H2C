@@ -5,7 +5,7 @@
 Read the official **H2C** repository and run 5 tests completely independently.
 
 ### Repository to consult:
-- **URL**: https://github.com/PaoEng/H2C
+- **URL**: https://github.com/LuPaLa-Codet/H2C
 - Read in particular:
   - `README.md`
   - `SPEC.md`
