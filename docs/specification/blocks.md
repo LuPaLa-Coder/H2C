@@ -1,6 +1,6 @@
 # H2C Block Reference
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** COMPLETE
 **Purpose:** Quick reference guide for all H2C blocks, fields, rules, and patterns.
 
@@ -10,11 +10,14 @@
 
 | Type | Subtype | Role | Mandatory |
 |------|---------|------|:---------:|
+| CTX | NEGOTIATE | Version handshake | Yes (1st block) |
+| STATE | ACK | Protocol acknowledgment | Yes (after NEGOTIATE) |
 | ARCH | PLAN | Architectural plan | Yes (1 per chain) |
 | BUILD | EXEC | Implementation request | Yes |
 | BUILD | DONE | Implementation completed | Yes |
 | BUILD | FIX | Correction request | If TEST:FAIL |
 | BUILD | REVERT | Revision rollback | Rare |
+| BUILD | NACK | Malformed block rejection | On parse error |
 | TEST | RUN | Test request | Yes |
 | TEST | PASS | Test passed | Either PASS or FAIL |
 | TEST | FAIL | Test failed | Either FAIL or PASS |
@@ -24,7 +27,6 @@
 | CTX | COMPACT | History compaction | Every 20 msgs |
 | CTX | FREEZE | Baseline freeze | ~100 msgs |
 | STATE | FINDINGS | Analysis result | Optional |
-| STATE | ACK | Protocol acknowledgment | 1x (after PLAN) |
 | ORCH | END | Cycle closure | Yes (1 per chain) |
 | SKILL | PROMPT | Agent definition | Skills |
 

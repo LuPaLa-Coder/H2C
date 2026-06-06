@@ -1,5 +1,43 @@
 # Changelog
 
+## v1.4 — Grammar fixes, handshake, error recovery (2026-06-06)
+
+Protocol grammar fixed (7 issues resolved from formal audit). Version negotiation via CTX:NEGOTIATE. Explicit error recovery via BUILD:NACK. Formal STATE:FINDINGS fields. DAG transitive closure.
+
+### Spec fixes (9 issues resolved)
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | CTX `~` prefix fields not parseable (ctx_field orphaned in EBNF) | Integrated `ctx_field` into `fields` production |
+| 2 | `<signed_int>` unreachable from `<value>` in SPEC.md BNF | Added `signed_int` to `<value>`; aligned SPEC.md with grammar.md |
+| 3 | String `:` ambiguity (BNF allowed `:` in string, regex didn't) | String now excludes `:` — aligned with separator regex |
+| 4 | PEG parsing order not documented | Documented: int → signed_int → rev → list → string |
+| 5 | No version negotiation (STATE:ACK declarative only) | New `CTX:NEGOTIATE` block as mandatory first block of every chain |
+| 6 | Malformed blocks silently discarded | New `BUILD:NACK` block with `ref_id`, `error`, `hint` fields |
+| 7 | `STATE:FINDINGS` grammar too free-form | Formal fields: `cause`, `action`, `impact`, `risk`, `pattern`, `components` |
+| 8 | DAG cycle detection only 2-node (direct) | R14: transitive closure across all N nodes |
+| 9 | State machine gaps (FROZEN→TEST, PLANNED→TEST, INIT error) | Added HANDSHAKE, ACKED, REJECTING states; FROZEN→TEST_RUN, FROZEN→STATE:FINDINGS, PLANNED→TEST_RUN |
+
+### New blocks (v1.4)
+- **CTX:NEGOTIATE** — version handshake with capability negotiation (REQUIRED as first block)
+- **BUILD:NACK** — explicit malformed block rejection (replaces silent discard)
+
+### New subtypes
+- `CTX:NEGOTIATE` added to ctx_subtype
+- `BUILD:NACK` added to build_subtype
+
+### Breaking changes
+- **MINOR**: CTX:NEGOTIATE now REQUIRED as first block of every chain
+- **MINOR**: `protocol` field advances to `h2c_v1.4`
+- **MINOR**: `~progress` field separator is now `,` (was already changed in v1.3, now uniformly enforced)
+- **NONE**: All v1.3 blocks remain valid
+
+### Documentation
+- SPEC.md updated to v1.4 with all grammar fixes
+- grammar.md EBNF updated with ctx_field integration, PEG ordering, new blocks
+- semantics.md updated with HANDSHAKE/ACKED/REJECTING states, DAG transitive closure (R14), NACK rule (R13)
+- DeepSeek V4 Pro test suite: `deepseek-v4-pro/` with 5 test scenarios + REPORT.md
+
 ## v1.3 — Formal EBNF, spec audit, English translation (2026-06-04)
 
 Protocol grammar consolidated to ISO 14977 EBNF. All spec documents translated to English. Multiple protocol issues fixed following systematic audit.

@@ -5,7 +5,7 @@
 ![H2C Protocol](1779633660140.png)
 
 ```
-Protocollo: H2C v1.3
+Protocollo: H2C v1.4
 Stato:      DRAFT (validato)
 Licenza:    MIT
 Specifica:  SPEC.md
@@ -70,9 +70,9 @@ Non è un formato di prompt. È un **wire protocol per agenti AI.**
 chiave1:valore1|chiave2:valore2|...
 
 TIPO     ::= "ARCH" | "BUILD" | "TEST" | "CTX" | "STATE" | "ORCH" | "SKILL"
-SOTTOTIPO::= "PLAN" | "EXEC" | "DONE" | "FIX" | "REVERT" | "RUN" | "PASS"
+SOTTOTIPO::= "PLAN" | "EXEC" | "DONE" | "FIX" | "REVERT" | "NACK" | "RUN" | "PASS"
            | "FAIL" | "PRIMITIVES" | "UPDATE" | "PRUNE" | "COMPACT" | "FREEZE"
-           | "FINDINGS" | "ACK" | "END" | "PROMPT"
+           | "NEGOTIATE" | "FINDINGS" | "ACK" | "END" | "PROMPT"
 ```
 
 I campi sono coppie chiave-valore tipizzate con separatore `|`. Liste usano `[a,b,c]`. Revisioni usano `file~N`. Vedi [SPEC.md](SPEC.md) e [docs/specification/grammar.md](docs/specification/grammar.md).
@@ -80,6 +80,12 @@ I campi sono coppie chiave-valore tipizzate con separatore `|`. Liste usano `[a,
 ### Esempio Minimo
 
 ```
+[CTX:NEGOTIATE]
+version:h2c_v1.4|capabilities:[PRUNE,COMPACT,FREEZE,NEGOTIATE,NACK]
+
+[STATE:ACK]
+protocol:h2c_v1.4
+
 [ARCH:PLAN]
 id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEATHER_API_KEY)|struct:[main.py,routers/weather.py,services/weather_service.py]|notes:[cache_TTL_10min,rate-limit_60req-min]
 
@@ -93,7 +99,7 @@ id:m1|diff:[main.py~1]|rev:1
 final:complete|est_token:15
 ```
 
-Questo sostituisce ~180 token di linguaggio naturale con ~55 token (~70% di risparmio, validato su Claude Sonnet 4.6, Opus 4.7).
+Questo sostituisce ~180 token di linguaggio naturale con ~70 token (~61% di risparmio, validato su Claude Opus 4.7, DeepSeek V4 Pro).
 
 ---
 
@@ -103,8 +109,9 @@ Questo sostituisce ~180 token di linguaggio naturale con ~55 token (~70% di risp
 |---------|-------------|---------|
 | [API Meteo](examples/api-meteo.md) | Servizio meteo Python/FastAPI vs prompt NL | ~65% |
 | [TODO Console](examples/todo-console.md) | App console C# .NET 8 con SQLite vs NL | ~59% |
-| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.3 completa con gestione contesto | ~80% |
-| [Test Opus 4.7](opus4_7/REPORT.md) | 5 scenari, fino a 130 messaggi | ~78–83% |
+| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.4 completa con gestione contesto | ~80% |
+| [Test Opus 4.7](opus4_7/REPORT.md) | 5 scenari v1.1, fino a 130 messaggi | ~78–83% |
+| [Test DeepSeek V4 Pro](deepseek-v4-pro/REPORT.md) | 5 scenari v1.4, fino a 130 messaggi | ~78–83% |
 
 ---
 
@@ -159,7 +166,7 @@ Vedi [docs/ecosystem/integrations.md](docs/ecosystem/integrations.md).
 | v1.1 | PRUNE/COMPACT, rev, fail/pass count | RILASCIATO |
 | v1.2 | FREEZE, cycle_id obbligatorio, retry_n, rinomina skill | RILASCIATO |
 | v1.3 | EBNF formale (ISO 14977), modello AST, opcode semantici, macchina stati completa | RILASCIATO |
-| v1.4 | BNF grammar signed_int, ~progress separatore uniforme, DAG cycle detection | PIANIFICATO |
+| v1.4 | CTX:NEGOTIATE handshake, BUILD:NACK error recovery, fix grammatica BNF, DAG transitive closure, campi STATE:FINDINGS formali | RILASCIATO |
 | v2.0 | Implementazione di riferimento parser, validatore, transpiler | PIANIFICATO |
 | v3.0 | Compilatore H2C, trasporto nativo MCP, runtime agenti | RICERCA |
 
@@ -179,6 +186,7 @@ cat skills/h2c_architect.md
 
 # Esplora benchmark
 cat opus4_7/REPORT.md
+cat deepseek-v4-pro/REPORT.md
 
 # Auto-test
 cat Test.md
