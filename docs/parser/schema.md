@@ -11,7 +11,7 @@
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/PaoEng/H2C/schemas/h2c.json",
+  "$id": "https://github.com/LuPaLa-Coder/H2C/schemas/h2c.json",
   "title": "Blocco Protocollo H2C",
   "description": "Schema per i blocchi del protocollo H2C Semantic Compression",
   "type": "object",
@@ -169,7 +169,7 @@
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/PaoEng/H2C/schemas/block.json",
+  "$id": "https://github.com/LuPaLa-Coder/H2C/schemas/block.json",
   "title": "Blocco H2C",
   "definitions": {
     "field": {

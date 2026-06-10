@@ -2,7 +2,7 @@
 
 **Data test:** 2026-06-06
 **Tester:** agente AI (DeepSeek V4 Pro)
-**Specifica di riferimento:** `SPEC.md` v1.4 (PaoEng/H2C)
+**Specifica di riferimento:** `SPEC.md` v1.4 (LuPaLa-Coder/H2C)
 **Modalità:** generazione reale delle catene, nessuna simulazione
 
 ---
