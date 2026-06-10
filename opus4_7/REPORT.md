@@ -2,7 +2,7 @@
 
 **Data test:** 2026-05-25
 **Tester:** agente AI (Microsoft Copilot, Opus 4.7)
-**Specifica di riferimento:** `SPEC.md` v1.1 (PaoEng/H2C)
+**Specifica di riferimento:** `SPEC.md` v1.1 (LuPaLa-Coder/H2C)
 **Modalità:** generazione reale delle catene, nessuna simulazione
 
 ---

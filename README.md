@@ -176,7 +176,7 @@ Vedi [docs/ecosystem/integrations.md](docs/ecosystem/integrations.md).
 
 ```bash
 # Clona
-git clone https://github.com/PaoEng/H2C.git
+git clone https://github.com/LuPaLa-Coder/H2C.git
 
 # Leggi la specifica
 cat SPEC.md

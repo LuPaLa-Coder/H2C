@@ -137,7 +137,7 @@ davvero eseguire un prompt non invoca `h2c_compress`.
 
 1. **Identifica il tipo di richiesta** nel prompt NL e scegli il blocco H2C
    target dalla grammatica v1.3 (vedi `SPEC.md` se accessibile, altrimenti
-   il repo ufficiale https://github.com/PaoEng/H2C):
+   il repo ufficiale https://github.com/LuPaLa-Coder/H2C):
 
    | Tipo di prompt | Blocco H2C target |
    |---|---|
