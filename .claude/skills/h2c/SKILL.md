@@ -1,7 +1,7 @@
 ---
 name: h2c
 description: H2C Semantic Compression Protocol — comunicazione AI-to-AI strutturata a blocchi. Comprimi prompt in H2C, genera blocchi ARCH/BUILD/TEST/CTX, monitora statistiche di risparmio token.
-argument-hint: [stat|compress|plan|build|done|test|fix|negotiate|findings|compact|prune|end|parse|transcode|grammar|help]
+argument-hint: [stat|log|on|off|compress|plan|build|done|test|fix|negotiate|findings|compact|prune|end|parse|transcode|grammar|help]
 ---
     /h2c done <id> <files...>        — Genera [BUILD:DONE]
     /h2c test run <id> <cmd>         — Genera [TEST:RUN]
@@ -16,6 +16,9 @@ argument-hint: [stat|compress|plan|build|done|test|fix|negotiate|findings|compac
     /h2c parse <blocco>              — Valida e spiega un blocco H2C
     /h2c transcode <testo>           — Converti NL → H2C (blocco più appropriato)
     /h2c grammar                     — Mostra reference rapida grammatica
+    /h2c log                         — Salva report statistiche su file
+    /h2c on                          — Attiva H2C proattivo per la sessione
+    /h2c off                         — Disattiva H2C proattivo
     /h2c help                        — Questo help
 ---
 
@@ -51,6 +54,40 @@ Stima token: se disponibile `tiktoken`, usalo con encoding `cl100k_base`. Altrim
 
 Se non ci sono ancora blocchi generati, mostra lo stato iniziale e un quickstart.
 Aggiungi una stima di quanti token sarebbero serviti in linguaggio naturale vs H2C per i messaggi di questa conversazione (approssimativa).
+
+### `/h2c log [percorso]`
+Salva l'output di `/h2c stat` su file (`h2c_report.md`) nella root del repo.
+
+**Filename**: `h2c_report.md` (fisso, sovrascritto a ogni `/h2c log`).
+
+**Percorso**: se specificato, usa quel percorso; altrimenti root del repo git (`git rev-parse --show-toplevel`), fallback CWD.
+
+**Formato**: identico a `/h2c stat` — stesso header, stesse tabelle, stesso contenuto. Nessuna colonna aggiuntiva.
+
+Dopo il salvataggio, conferma con `Report salvato in: <percorso assoluto>`.
+
+
+### `/h2c on`
+Attiva la **modalità H2C proattiva** per il resto della sessione corrente.
+
+Quando attivo, per ogni task di sviluppo:
+- **Prima** di modificare file: generi `[BUILD:EXEC]` con descrizione del task
+- **Dopo** ogni modifica: generi `[BUILD:DONE]` con file modificati e delta
+- Per task complessi: generi `[ARCH:PLAN]` se serve pianificazione
+- In caso di errori: generi `[TEST:FAIL]` + `[BUILD:FIX]` + `[BUILD:DONE]`
+
+Conferma con:
+```
+H2C ON — protocollo attivo per questa sessione. Ogni task sarà tracciato con blocchi BUILD:EXEC / BUILD:DONE.
+```
+
+### `/h2c off`
+Disattiva la modalità H2C proattiva. Torno al comportamento standard.
+
+Conferma con:
+```
+H2C OFF — protocollo disattivato. Usa /h2c on per riattivarlo.
+```
 
 ### `/h2c compress <testo>`
 Comprimi il testo in linguaggio naturale nel blocco H2C più appropriato.
@@ -144,7 +181,7 @@ Mostra questo help.
 ## Regole Operative
 
 1. In **modalità generazione** (`plan`, `build`, `done`, `test *`, `fix`, `negotiate`, `findings`, `compact`, `prune`, `end`): emetti SOLO il blocco H2C, niente markdown, niente spiegazioni.
-2. In **modalità analisi** (`stat`, `parse`, `grammar`, `help`, `compress`, `transcode`): markdown permesso per spiegazioni.
+2. In **modalità analisi** (`stat`, `log`, `on`, `off`, `parse`, `grammar`, `help`, `compress`, `transcode`): markdown permesso per spiegazioni.
 3. `id:` deve essere uno slug kebab-case univoco.
 4. Campi obbligatori sempre presenti (da SPEC.md).
 5. Liste inline max 5 elementi, senza spazi.
