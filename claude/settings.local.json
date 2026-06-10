@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/paolo/.claude/**)",
+      "Bash(mkdir -p /Users/paolo/repo/GitHUbLupala/H2C/.claude/skills/h2c)",
+      "Bash(mv /Users/paolo/repo/GitHUbLupala/H2C/.claude/skills/h2c.md /Users/paolo/repo/GitHUbLupala/H2C/.claude/skills/h2c/SKILL.md)",
+      "Bash(git *)"
+    ]
+  }
+}

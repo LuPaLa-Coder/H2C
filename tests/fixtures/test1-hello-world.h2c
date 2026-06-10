@@ -1,0 +1,26 @@
+# Test 1 — Hello World (H2C v1.4)
+# Prompt: "Crea un Hello World in Python"
+
+[CTX:NEGOTIATE]
+version:h2c_v1.4|capabilities:[PRUNE,COMPACT,FREEZE,NEGOTIATE,NACK]
+
+[STATE:ACK]
+protocol:h2c_v1.4
+
+[ARCH:PLAN]
+id:t1|fw:python3|lib:none|pattern:script|tools:[python]|struct:[main.py]|notes:[stdlib_only]
+
+[BUILD:EXEC]
+id:t1.1|target:main.py|desc:print_hello_world
+
+[BUILD:DONE]
+id:t1.1|diff:[main.py~1]|rev:1
+
+[TEST:RUN]
+id:t1.1|cmd:python main.py
+
+[TEST:PASS]
+id:t1.1|pass_count:1
+
+[ORCH:END]
+final:complete|est_token:42
