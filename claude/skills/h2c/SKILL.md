@@ -1,25 +1,6 @@
 ---
 name: h2c
-description: H2C Semantic Compression Protocol — comunicazione AI-to-AI strutturata a blocchi. Comprimi prompt in H2C, genera blocchi ARCH/BUILD/TEST/CTX, monitora statistiche di risparmio token.
-argument-hint: [stat|log|on|off|compress|plan|build|done|test|fix|negotiate|findings|compact|prune|end|parse|transcode|grammar|help]
----
-    /h2c done <id> <files...>        — Genera [BUILD:DONE]
-    /h2c test run <id> <cmd>         — Genera [TEST:RUN]
-    /h2c test pass <id> [n]          — Genera [TEST:PASS]
-    /h2c test fail <id> <err> <cid>  — Genera [TEST:FAIL]
-    /h2c fix <id> <tgt> <desc> <cid> — Genera [BUILD:FIX]
-    /h2c negotiate [version]         — Avvia handshake CTX:NEGOTIATE
-    /h2c findings <id> <cause>       — Genera [STATE:FINDINGS]
-    /h2c compact                     — Genera [CTX:COMPACT]
-    /h2c prune                       — Genera [CTX:PRUNE]
-    /h2c end <final>                 — Genera [ORCH:END]
-    /h2c parse <blocco>              — Valida e spiega un blocco H2C
-    /h2c transcode <testo>           — Converti NL → H2C (blocco più appropriato)
-    /h2c grammar                     — Mostra reference rapida grammatica
-    /h2c log                         — Salva report statistiche su file
-    /h2c on                          — Attiva H2C proattivo per la sessione
-    /h2c off                         — Disattiva H2C proattivo
-    /h2c help                        — Questo help
+description: H2C v1.4 Semantic Compression Protocol per comunicazione AI-to-AI strutturata. Usa quando devi tracciare task di sviluppo (BUILD:EXEC/DONE), pianificare architetture (ARCH:PLAN), registrare risultati di test (TEST:PASS/FAIL/FIX), comprimere prompt NL in blocchi tipizzati, o avviare un handshake AI-to-AI.
 ---
 
 # H2C v1.4 — Claude Code Integration
@@ -30,13 +11,38 @@ Operi in due modalità:
 1. **Generazione**: produci blocchi H2C puri (zero markdown, zero spiegazioni)
 2. **Analisi**: spieghi, validi, mostri statistiche (markdown permesso)
 
-La grammatica H2C è definita in [SPEC.md](SPEC.md). Rispetta SEMPRE:
+La grammatica H2C rispetta sempre:
 - Blocco su 2 righe: `[TIPO:SOTTOTIPO]\ncampo:val|campo:val|...`
 - Separatore campi: `|`
 - Liste: `[a,b,c]` senza spazi dopo virgola
 - Revisioni: `file~N`
 - CTX fields: prefix `~`
 - Zero testo fuori dai campi. Zero markdown in modalità generazione.
+
+## When to Use
+
+- Tracciare task di sviluppo con blocchi `BUILD:EXEC` / `BUILD:DONE`
+- Pianificare architetture con `ARCH:PLAN`
+- Registrare risultati di test con `TEST:PASS`, `TEST:FAIL`, `BUILD:FIX`
+- Comprimere prompt in linguaggio naturale in blocchi H2C compatti (`/h2c compress`)
+- Monitorare il risparmio token nella sessione (`/h2c stat`)
+- Avviare handshake AI-to-AI (`/h2c negotiate`)
+
+## When Not to Use
+
+- Per comunicazione rivolta a utenti umani (H2C è un protocollo AI-to-AI)
+- Quando non è necessaria tracciabilità strutturata dei task
+- Se i valori da codificare contengono caratteri riservati H2C (`:`, `|`, `\n`, `[`, `]`)
+
+## Inputs
+
+| Input | Required | Description |
+|-------|----------|-------------|
+| Sottocomando | Yes | Uno tra: `stat`, `log`, `on`, `off`, `compress`, `plan`, `build`, `done`, `test`, `fix`, `negotiate`, `findings`, `compact`, `prune`, `end`, `parse`, `transcode`, `grammar`, `help` |
+| `id` | Condizionale | Slug kebab-case univoco (richiesto da `build`, `done`, `test *`, `fix`, `findings`) |
+| `files` | Condizionale | Lista file nel formato `file~N,+M/-M` (richiesto da `done`) |
+| `cmd` | Condizionale | Comando di test (richiesto da `test run`) |
+| `error` + `cycle_id` | Condizionale | Descrizione errore e ID ciclo (richiesti da `test fail` e `fix`) |
 
 ## Sottocomandi
 
@@ -190,10 +196,33 @@ Mostra questo help.
 8. Revisioni file sempre nel formato `filename~N`.
 9. I valori stringa non devono contenere `:`, `|`, `\n`, `[`, `]`.
 
+## Validation
+
+- [ ] Il blocco generato è su esattamente 2 righe: `[TIPO:SOTTOTIPO]` + campi `|`-separati
+- [ ] Nessun testo o markdown fuori dal blocco in modalità generazione
+- [ ] Tutti i campi obbligatori sono presenti (da grammatica H2C)
+- [ ] `id:` è in formato kebab-case
+- [ ] `cycle_id` presente in `BUILD:FIX` e `TEST:FAIL`
+- [ ] `retry_n` nel range 1–3 per `BUILD:FIX`
+- [ ] Nessun valore contiene caratteri riservati: `:`, `|`, `\n`, `[`, `]`
+
+## Common Pitfalls
+
+| Pitfall | Solution |
+|---------|----------|
+| Markdown in modalità generazione | Emetti SOLO il blocco H2C, zero testo extra |
+| Valori con `:` o `\|` nel testo | Rimuovi o sostituisci i caratteri riservati |
+| `id:` con spazi o maiuscole | Usa kebab-case: `my-task-id` non `My Task ID` |
+| `cycle_id` mancante in `BUILD:FIX` | Sempre obbligatorio; ricavalo dal `TEST:FAIL` corrispondente |
+| Lista con spazi: `[a, b, c]` | Formato corretto: `[a,b,c]` senza spazi |
+| `retry_n` > 3 | Massimo 3; oltre, escalare il problema |
+
 ## Riferimenti
 
-- [SPEC.md](SPEC.md) — Specifica completa v1.4
-- [h2c_architect.md](h2c_architect.md) — Reference architetto
-- [h2c_builder.md](h2c_builder.md) — Reference builder
-- [h2c_orchestrator.md](h2c_orchestrator.md) — Reference orchestratore
-- [h2c_tester.md](h2c_tester.md) — Reference tester
+> ⚠️ I file di riferimento elencati non sono ancora presenti nella directory della skill. Creali per estendere la documentazione.
+
+- `SPEC.md` — Specifica completa grammatica BNF v1.4
+- `h2c_architect.md` — Reference per il ruolo architetto
+- `h2c_builder.md` — Reference per il ruolo builder
+- `h2c_orchestrator.md` — Reference per il ruolo orchestratore
+- `h2c_tester.md` — Reference per il ruolo tester
