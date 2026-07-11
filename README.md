@@ -231,11 +231,11 @@ git clone https://github.com/LuPaLa-Coder/H2C.git
 cat SPEC.md
 
 # Esegui una skill (copia come system prompt in qualsiasi LLM)
-cat skills/h2c_architect.md
+cat docs/agents/h2c_architect.md
 
 # Esplora benchmark
-cat opus4_7/REPORT.md
-cat deepseek-v4-pro/REPORT.md
+cat InternalTest/opus4_7/REPORT.md
+cat InternalTest/deepseek-v4-pro/REPORT.md
 
 # Auto-test
 cat Test.md

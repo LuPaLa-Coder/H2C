@@ -12,7 +12,7 @@
 ┌──────────────────────────────────────────────────────────┐
 │                   APPLICATION LAYER                      │
 │  Agent skills, orchestration logic, routing              │
-│  skills/h2c_architect.md, h2c_orchestrator.md, ...      │
+│  docs/agents/h2c_architect.md, h2c_orchestrator.md, ...  │
 ├──────────────────────────────────────────────────────────┤
 │                   SEMANTIC LAYER                         │
 │  H2C block grammar, opcodes, AST, type/subtype          │
