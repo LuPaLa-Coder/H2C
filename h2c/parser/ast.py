@@ -46,28 +46,28 @@ class Subtype(Enum):
 # ── Value types ──────────────────────────────────────────────────────────────
 
 
-@dataclass
+@dataclass(frozen=True)
 class StringValue:
     data: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ListValue:
     data: List[str]
 
 
-@dataclass
+@dataclass(frozen=True)
 class RevisionValue:
     file: str
     rev: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class IntegerValue:
     data: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class SignedIntValue:
     data: int  # stored as int, positive or negative
 
@@ -78,14 +78,14 @@ Value = Union[StringValue, ListValue, RevisionValue, IntegerValue, SignedIntValu
 # ── Composite types ──────────────────────────────────────────────────────────
 
 
-@dataclass
+@dataclass(frozen=True)
 class Field:
     key: str
     value: Value
     is_ctx: bool = False  # True when key is prefixed with ~ (CTX blocks)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Block:
     type: str          # "ARCH" | "BUILD" | ...
     subtype: str       # "PLAN" | "EXEC" | ...
@@ -93,7 +93,7 @@ class Block:
     original_text: str = ""  # raw source text for error reporting
 
 
-@dataclass
+@dataclass(frozen=True)
 class Message:
     blocks: List[Block] = field(default_factory=list)
 
