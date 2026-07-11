@@ -17,7 +17,7 @@ description: |
 
   NON usare per: comprimere risposte/output del modello (l'output deve restare
   leggibile), comprimere conversazioni (usa /compact del modello), gestire
-  catene di agenti H2C runtime (usa skills/h2c_orchestrator.md del repo).
+  catene di agenti H2C runtime (usa docs/agents/h2c_orchestrator.md del repo).
 ---
 
 # h2c_compress — compressione prompt NL → H2C

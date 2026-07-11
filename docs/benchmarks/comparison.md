@@ -168,7 +168,7 @@ cat Test.md
 ```
 
 To reproduce:
-1. Copy `skills/h2c_architect.md` as system prompt into an LLM
+1. Copy `docs/agents/h2c_architect.md` as system prompt into an LLM
 2. Provide human prompt (e.g. "Create a Hello World in Python")
 3. Follow the chain: ARCH:PLAN → BUILD:EXEC → BUILD:DONE → TEST:RUN → TEST:PASS → ORCH:END
 4. Count tokens vs equivalent NL
