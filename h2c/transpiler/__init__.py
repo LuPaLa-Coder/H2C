@@ -3,6 +3,7 @@ from h2c.transpiler.json_codegen import JSONCodegen
 from h2c.transpiler.mcp import MCPCodegen
 from h2c.transpiler.yaml_codegen import YAMLCodegen
 from h2c.transpiler.reverse import ReverseCompiler
+from h2c.transpiler.serializer import H2CSerializer, serialize, serialize_block
 from h2c.parser.ast import Message, Block
 
 
@@ -11,7 +12,7 @@ def transpile(message: Message, target: str = "nl") -> str:
 
     Args:
         message: The parsed H2C Message.
-        target: One of 'nl', 'json', 'mcp', 'yaml'.
+        target: One of 'nl', 'json', 'mcp', 'yaml', 'h2c'.
 
     Returns:
         Transpiled string in the target format.
@@ -27,6 +28,8 @@ def transpile(message: Message, target: str = "nl") -> str:
         )
     elif target == "yaml":
         return YAMLCodegen().generate(message)
+    elif target == "h2c":
+        return H2CSerializer().serialize(message)
     else:
         raise ValueError(f"Unknown target format: {target}")
 
@@ -37,5 +40,8 @@ __all__ = [
     "MCPCodegen",
     "YAMLCodegen",
     "ReverseCompiler",
+    "H2CSerializer",
+    "serialize",
+    "serialize_block",
     "transpile",
 ]

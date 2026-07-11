@@ -41,12 +41,12 @@ class Validator:
         self._validate_contextual(message, result)
         self._validate_terminal(message, result)
 
-        # Compute valid_blocks count
-        valid_block_indices: Set[int] = set()
+        # Compute valid_blocks count (blocks WITHOUT errors)
+        invalid_block_indices: Set[int] = set()
         for e in result.errors:
-            if e.location and "block" in e.location:
-                valid_block_indices.add(e.location["block"])
-        result.stats["valid_blocks"] = len(message.blocks) - len(valid_block_indices)
+            if e.level == "error" and e.location and "block" in e.location:
+                invalid_block_indices.add(e.location["block"])
+        result.stats["valid_blocks"] = len(message.blocks) - len(invalid_block_indices)
 
         return result
 
