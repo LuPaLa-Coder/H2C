@@ -1,197 +1,158 @@
-# H2C — Integrazione con Coding Agents
+# H2C — Installazione per Coding Agent
 
-Il protocollo H2C v1.4 è **agent-agnostic**: funziona con qualsiasi LLM e qualsiasi coding agent. Questo documento spiega come integrarlo in ciascun ambiente.
-
----
-
-## 🌍 Standard Universale: `AGENTS.md`
-
-Il file [`AGENTS.md`](../AGENTS.md) nella root del repository è il formato canonico universale. Viene letto nativamente da:
-
-| Agente | Supporto |
-|--------|----------|
-| **Cursor** | ✅ Nativo (`AGENTS.md`) |
-| **GitHub Copilot** | ✅ Nativo |
-| **Claude Code** | ✅ Nativo (`CLAUDE.md`, che punta a `AGENTS.md`) |
-| **Cline** | ✅ Nativo (legge anche `AGENTS.md`) |
-| **OpenAI Codex** | ✅ Nativo |
-| **Zed AI** | ✅ Nativo |
-| **Gemini CLI** | ✅ Nativo (`GEMINI.md`) |
-| **Windsurf** | ✅ Via `.windsurfrules` |
-| **Aider** | ✅ Via `CONVENTIONS.md` |
-
-**Vantaggio:** Un solo file da mantenere, tutti gli agenti lo leggono. Nessuna duplicazione.
+Il protocollo H2C v1.4 è compatibile con tutti i principali coding agent. Questo documento elenca i metodi di installazione supportati ufficialmente.
 
 ---
 
-## 🤖 Claude Code
+## 🧩 Agenti con sistema PLUGIN (installabile via marketplace)
 
-### Opzione A: Plugin (consigliato, massima integrazione)
+Questi agenti supportano un vero sistema di plugin con manifest, skill, comandi e marketplace.
+
+### Claude Code
 
 ```bash
+# Installazione
 /plugin install github:LuPaLa-Coder/H2C
+
+# Oppure via marketplace
+/plugin marketplace add LuPaLa-Coder/H2C
+/plugin install h2c
+
+# Sviluppo locale
+claude --plugin-dir .
 ```
 
-Il plugin espone:
-- **Comandi**: `/h2c:h2c stat`, `/h2c:h2c compress`, `/h2c:h2c plan`, etc. (20 comandi)
-- **Skill automatiche**: `h2c-architect`, `h2c-builder`, `h2c-orchestrator`, `h2c-tester`, `h2c-compress`
-- **Validazione**: `claude plugin validate` già superato ✔
+**Manifest:** `.claude-plugin/plugin.json`  
+**Skill esposte:** `/h2c:h2c stat`, `/h2c:h2c compress`, `/h2c:h2c plan`, `/h2c:h2c build`, etc. (20 comandi)  
+**Skill automatiche:** `h2c-architect`, `h2c-builder`, `h2c-orchestrator`, `h2c-tester`, `h2c-compress`
 
-### Opzione B: Standalone (progetto locale)
-
-Claude Code legge automaticamente `CLAUDE.md` nella root del progetto. Clona il repo e lavora nella directory:
+### GitHub Copilot CLI
 
 ```bash
-git clone https://github.com/LuPaLa-Coder/H2C
-cd H2C
-claude
+# Installazione diretta da GitHub
+copilot plugin install LuPaLa-Coder/H2C
+
+# Da percorso locale (test)
+copilot plugin install ./H2C
+
+# Elenca plugin installati
+copilot plugin list
 ```
 
-### Opzione C: Sviluppo plugin
+**Manifest:** `.claude-plugin/plugin.json` (Copilot CLI lo riconosce — ordine di risoluzione: `.plugin/`, `plugin.json`, `.github/plugin/`, `.claude-plugin/`)  
+**Skill esposte:** `/h2c:h2c stat`, `/h2c:h2c compress`, `/h2c:h2c plan`, etc.
+
+### Cursor
 
 ```bash
-claude --plugin-dir /path/to/H2C
+# In-editor
+/add-plugin h2c
+
+# Oppure installa da GitHub nella UI: Settings → Plugins → Install
+# URL: https://github.com/LuPaLa-Coder/H2C
+
+# Locale (test)
+mkdir -p ~/.cursor/plugins/local/
+git clone https://github.com/LuPaLa-Coder/H2C ~/.cursor/plugins/local/h2c
 ```
+
+**Manifest:** `.cursor-plugin/plugin.json`  
+**Skill esposte:** `/h2c:h2c stat`, `/h2c:h2c compress`, etc.  
+**Rules:** `.cursor/rules/h2c.mdc` (alwaysApply: true)
 
 ---
 
-## 🖱️ Cursor
+## 📄 Agenti con RULE FILE (nessun plugin, caricamento automatico)
 
-### Installazione
+Questi agenti **NON** hanno un sistema plugin. Leggono file di regole/istruzioni direttamente dal repository. Non serve installazione — basta clonare il repo o copiare i file.
 
-Il file [`.cursor/rules/h2c.mdc`](../.cursor/rules/h2c.mdc) attiva H2C automaticamente in ogni sessione Cursor.
+### Cursor (rule file, alternativa al plugin)
 
-```bash
-# Clona il repo o copia solo i file rules:
-cp .cursor/rules/h2c.mdc <tuo-progetto>/.cursor/rules/
-cp AGENTS.md <tuo-progetto>/
-```
+Il file `.cursor/rules/h2c.mdc` è già nel repo. Cursor lo carica automaticamente come regola (`alwaysApply: true`).  
+Viene letto anche senza installare il plugin.
 
-### Comportamento
+### GitHub Copilot (coding assistant)
 
-- `alwaysApply: true` — H2C è sempre disponibile
-- Quando dici "comprimi questo prompt in H2C" → genera il blocco corretto
-- Usa `@h2c` per attivarlo manualmente in una chat
-
----
-
-## 📋 GitHub Copilot
-
-### Installazione
-
-Il file [`.github/copilot-instructions.md`](../.github/copilot-instructions.md) istruisce Copilot su come usare H2C.
+Il file `.github/copilot-instructions.md` è già nel repo. Copilot lo applica in ogni chat.
 
 ```bash
-# Copia nel tuo progetto:
+# Per usarlo in un altro progetto:
 cp .github/copilot-instructions.md <tuo-progetto>/.github/
 cp AGENTS.md <tuo-progetto>/
 ```
 
-### Comportamento
+### Windsurf
 
-Copilot applica le istruzioni in ogni chat e risponde in formato H2C quando richiesto.
-
----
-
-## 🌊 Windsurf
-
-### Installazione
+Il file `.windsurfrules` è già nel repo. Windsurf lo carica come regole di progetto.
 
 ```bash
 cp .windsurfrules <tuo-progetto>/
-cp AGENTS.md <tuo-progetto>/
 ```
 
-Windsurf legge `.windsurfrules` come regole globali del progetto.
+### Cline
 
----
+Cline legge nativamente `AGENTS.md`, `CLAUDE.md` e `.clinerules`. I file sono già nel repo.
 
-## 🧗 Cline
-
-### Installazione
-
-Cline legge automaticamente `AGENTS.md`, `CLAUDE.md`, e `.clinerules`.
-
-```bash
-cp AGENTS.md <tuo-progetto>/
-cp CLAUDE.md <tuo-progetto>/
-```
-
-In alternativa, crea un file `.clinerules`:
-
-```bash
-cp .windsurfrules <tuo-progetto>/.clinerules
-```
-
----
-
-## 🔧 Aider
-
-### Installazione
-
-```bash
-cp AGENTS.md <tuo-progetto>/CONVENTIONS.md
-```
-
-Oppure passa `AGENTS.md` come system prompt:
+### Aider
 
 ```bash
 aider --system-prompt AGENTS.md
 ```
 
+### OpenAI Codex / Zed AI / Gemini CLI
+
+Leggono `AGENTS.md` nativamente. Il file è già nella root del repo.
+
 ---
 
-## 🐍 Python Runtime (tutti gli agenti)
+## 🌍 Standard Universale: `AGENTS.md`
 
-Il runtime Python H2C è utilizzabile da qualsiasi ambiente:
+Il file `AGENTS.md` è lo standard emergente supportato da: **Codex, Gemini CLI, Claude Code, Cursor, Copilot, Cline, Zed AI, Aider**.
+
+È sempre disponibile nella root del repository. Basta clonare il repo e l'agente lo rileva automaticamente.
+
+---
+
+## 🐍 Python Runtime (qualsiasi ambiente)
 
 ```bash
 pip install -e .
-h2c parse file.h2c          # Parsing e validazione sintattica
-h2c validate file.h2c       # Validazione contro le regole del protocollo
-h2c transpile file.h2c --to nl   # H2C → linguaggio naturale
-h2c transpile file.h2c --to json # H2C → JSON strutturato
-h2c transpile file.h2c --to mcp  # H2C → MCP tool calls
-h2c transpile file.h2c --to yaml # H2C → YAML
-h2c run file.h2c            # Esecuzione catena H2C nell'agent runtime
-h2c stats file.h2c          # Statistiche token risparmiati
+h2c parse file.h2c          # Parsing e validazione
+h2c validate file.h2c       # Validazione protocollo
+h2c transpile file.h2c --to nl    # H2C → NL
+h2c transpile file.h2c --to json  # H2C → JSON
+h2c run file.h2c            # Esecuzione catena
+h2c stats file.h2c          # Statistiche token
 ```
 
 ---
 
-## 📊 Confronto Funzionalità per Agente
+## 📊 Riepilogo: Plugin vs Rules
 
-| Funzionalità | Claude Code | Cursor | Copilot | Windsurf | Cline | Aider |
-|---|---|---|---|---|---|---|
-| Comandi `/h2c:*` | ✅ Plugin | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Skill automatiche | ✅ Plugin | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Compressione NL→H2C | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Tracciamento BUILD/ARCH/TEST | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix cycle | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Validazione blocchi | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI |
-| Transpilazione NL/JSON/MCP | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI | ✅ CLI |
-| Handshake NEGOTIATE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Agente | Plugin | Rule file | Installazione |
+|--------|--------|-----------|---------------|
+| **Claude Code** | ✅ `.claude-plugin/` | `CLAUDE.md` | `/plugin install github:LuPaLa-Coder/H2C` |
+| **Copilot CLI** | ✅ `.claude-plugin/` | `.github/copilot-instructions.md` | `copilot plugin install LuPaLa-Coder/H2C` |
+| **Cursor** | ✅ `.cursor-plugin/` | `.cursor/rules/h2c.mdc` | `/add-plugin h2c` |
+| **Windsurf** | ❌ | `.windsurfrules` | File già nel repo |
+| **Cline** | ❌ | `AGENTS.md` | File già nel repo |
+| **Aider** | ❌ | `AGENTS.md` | `aider --system-prompt AGENTS.md` |
+| **Codex** | ❌ | `AGENTS.md` | File già nel repo |
+| **Zed AI** | ❌ | `AGENTS.md` | File già nel repo |
+| **Gemini CLI** | ❌ | `AGENTS.md` | File già nel repo |
 
 ---
 
 ## 🔑 File nel Repository
 
-| File | Agenti | Formato |
-|------|--------|---------|
-| `AGENTS.md` | Cursor, Copilot, Cline, Codex, Zed, Gemini, Aider, Claude Code | Markdown puro |
-| `CLAUDE.md` | Claude Code (standalone) | Markdown puro |
-| `.cursor/rules/h2c.mdc` | Cursor | YAML frontmatter + Markdown |
-| `.github/copilot-instructions.md` | GitHub Copilot | Markdown puro |
-| `.windsurfrules` | Windsurf | Markdown puro |
-| `.claude-plugin/plugin.json` | Claude Code (plugin) | JSON |
-| `skills/*/SKILL.md` | Claude Code (plugin) | YAML frontmatter + Markdown |
-| `h2c/` (runtime) | Qualsiasi (CLI) | Python |
-
----
-
-## 💡 Consiglio: quale usare?
-
-- **Massima integrazione**: Claude Code Plugin + `AGENTS.md`
-- **Multi-agente**: `AGENTS.md` + `.cursor/rules/h2c.mdc` + `.github/copilot-instructions.md`
-- **Minimale**: solo `AGENTS.md` (coperto il 90% degli agenti)
-- **CLI/automazione**: Python runtime `h2c`
+| File | Tipo | Agenti |
+|------|------|--------|
+| `.claude-plugin/plugin.json` | Plugin manifest | Claude Code, Copilot CLI |
+| `.cursor-plugin/plugin.json` | Plugin manifest | Cursor |
+| `skills/*/SKILL.md` | Plugin skills | Claude Code, Copilot CLI, Cursor |
+| `AGENTS.md` | Universale | Tutti |
+| `CLAUDE.md` | Standalone | Claude Code |
+| `.cursor/rules/h2c.mdc` | Rule file | Cursor |
+| `.github/copilot-instructions.md` | Rule file | GitHub Copilot |
+| `.windsurfrules` | Rule file | Windsurf |
+| `h2c/` | Python runtime | Qualsiasi (CLI) |
