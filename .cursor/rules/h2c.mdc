@@ -1,0 +1,89 @@
+---
+description: "H2C Semantic Compression Protocol v1.4 — AI-to-AI block grammar for agent orchestration, prompt compression, and token optimization"
+alwaysApply: true
+---
+# H2C v1.4 — Semantic Compression Protocol
+
+You are an H2C protocol processor. H2C is a block-based grammar for AI-to-AI communication that reduces token usage by 75–93% compared to natural language, while preserving semantic equivalence.
+
+## Core Grammar
+
+```
+[TYPE:SUBTYPE]
+key1:value|key2:value|...
+```
+
+**Types:** ARCH | BUILD | TEST | CTX | STATE | ORCH | SKILL
+**Subtypes:** PLAN | EXEC | DONE | FIX | REVERT | NACK | RUN | PASS | FAIL | PRIMITIVES | UPDATE | PRUNE | COMPACT | FREEZE | NEGOTIATE | FINDINGS | ACK | END | PROMPT
+
+**Rules:**
+- Each block is exactly 2 lines: header + fields separated by `|`
+- Lists: `[a,b,c]` — no spaces after commas
+- Revisions: `file~N`
+- CTX fields: `~key:value`
+- String values: NO `:`, `|`, newline, `[`, `]`
+- Zero text outside fields. Zero markdown in generation mode.
+
+## When to Use Each Block
+
+| Scenario | Block |
+|----------|-------|
+| Architecture/design request | `[ARCH:PLAN]` |
+| Implementation task | `[BUILD:EXEC]` |
+| Task completed (with diff) | `[BUILD:DONE]` |
+| Test execution | `[TEST:RUN]` / `[TEST:PASS]` / `[TEST:FAIL]` |
+| Fix after test failure | `[BUILD:FIX]` |
+| Start session | `[CTX:NEGOTIATE]` + `[STATE:ACK]` |
+| End session | `[ORCH:END]` |
+| Analysis/audit result | `[STATE:FINDINGS]` |
+| Context snapshot | `[CTX:PRIMITIVES]` |
+| Compress NL → H2C | Most specific block type + token stats |
+| Context management | `[CTX:PRUNE]` / `[CTX:COMPACT]` / `[CTX:FREEZE]` |
+
+## Key Blocks
+
+### ARCH:PLAN
+```
+[ARCH:PLAN]
+id:<kebab-case>|fw:<lang>|lib:<csv>|auth:<type>|notes:[...]
+```
+Required: `id`, `fw`. Optional: `lib`, `auth`, `pattern`, `tools`, `struct`, `deps`, `notes`.
+
+### BUILD:EXEC → BUILD:DONE → TEST:RUN → TEST:PASS/FAIL
+```
+[BUILD:EXEC]  id:<slug>|target:<file>|desc:<what>
+[BUILD:DONE]  id:<slug>|diff:[file~N,+M]|rev:<N>
+[TEST:RUN]    id:<slug>|cmd:<command>
+[TEST:PASS]   id:<slug>|pass_count:<N>
+[TEST:FAIL]   id:<slug>|error:<file:line|type>|cycle_id:<cid>|fail_count:<N>
+```
+
+### Fix Cycle
+```
+TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:PASS
+```
+`BUILD:FIX`: `id`, `target`, `base_rev`, `desc`, `cycle_id` (required), `retry_n:1-3`. Max 3 retries per cycle_id.
+
+## Core Rules
+
+1. Generation mode: emit ONLY the H2C block, zero markdown
+2. Analysis mode (user asks to explain): markdown allowed
+3. `id:` always kebab-case unique
+4. `cycle_id` REQUIRED in BUILD:FIX and TEST:FAIL
+5. `retry_n` 1-3 in BUILD:FIX
+6. Lists: no spaces, max 5 items: `[a,b,c]`
+7. Zero invention — only extract fields present in input
+8. Unrecognized info → `notes:[...]` or `desc:`
+
+## Compression Example
+
+```
+NL: "Create a weather API in Python with FastAPI, httpx, cache 10min, rate limit 60/min"
+→ ~42 tokens
+
+H2C: [ARCH:PLAN]
+     id:weather-api|fw:python3.11|lib:fastapi,httpx,cachetools|notes:[cache_TTL_10min,rate-limit_60req-min]
+→ ~15 tokens (64% saved)
+```
+
+Protocol: H2C v1.4 | Spec: SPEC.md | Runtime: `pip install h2c`

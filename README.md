@@ -63,6 +63,55 @@ Non è un formato di prompt. È un **wire protocol per agenti AI.**
 
 ---
 
+## Installazione (Claude Code Plugin)
+
+H2C è disponibile come plugin Claude Code. Aggiunge i comandi `/h2c:h2c` e skill automatiche per Architect, Builder, Orchestrator, Tester e Compress.
+
+```
+/plugin install github:LuPaLa-Coder/H2C
+```
+
+Oppure carica il marketplace e installa:
+
+```
+/plugin marketplace add LuPaLa-Coder/H2C
+/plugin install h2c
+```
+
+Dopo l'installazione, usa `/h2c:h2c help` per vedere tutti i comandi disponibili.
+
+### Skill incluse
+
+| Skill | Tipo | Descrizione |
+|-------|------|-------------|
+| `/h2c:h2c` | Comandi | Generazione, analisi e statistiche blocchi H2C |
+| `h2c-architect` | Automatica | Traduzione prompt NL → `ARCH:PLAN` |
+| `h2c-builder` | Automatica | Implementazione `BUILD:EXEC` → codice |
+| `h2c-orchestrator` | Automatica | Instradamento blocchi tra agenti |
+| `h2c-tester` | Automatica | Esecuzione `TEST:RUN` → `TEST:PASS`/`FAIL` |
+| `h2c-compress` | Automatica | Compressione prompt NL → H2C |
+
+Vedi [docs/PLUGIN.md](docs/PLUGIN.md) per la guida completa.
+
+### Python Runtime
+
+```bash
+pip install -e .
+h2c parse examples/api-meteo.md
+h2c validate tests/fixtures/test1-hello-world.h2c
+h2c transpile examples/api-meteo.md --to nl
+h2c run tests/fixtures/test1-hello-world.h2c
+h2c stats examples/api-meteo.md
+```
+
+### Sviluppo plugin locale
+
+```bash
+claude --plugin-dir .
+```
+
+---
+
 ## Sintassi (Grammatica Core)
 
 ```
