@@ -5,77 +5,47 @@ Data: 2026-07-11. Metodo: caratteri, parole, token stimati (chars÷3.7 H2C, char
 
 ## Risultati per modello
 
-### Claude Sonnet 5
-| Scenario | H2C tok | NL tok | Tok save |
-|----------|---------|--------|----------|
-| Hello World | 125 | 440 | 72% |
-| Calculator | 202 | 580 | 65% |
-| Clean Arch | 360 | 1.023 | 65% |
-| RAG Pipeline | 444 | 1.172 | 62% |
-| Stress (130) | 1.465 | 1.725 | 15% |
-| **TOTALE** | **2.596** | **4.941** | **47%** |
+=== H2C v1.4 Deterministic Benchmark ===
+Date: 2026-07-11
+Model: claude-haiku-4.5
 
-### GPT-5.5-mini
-| Scenario | H2C tok | NL tok | Tok save |
-|----------|---------|--------|----------|
-| Hello World | 142 | 651 | 78% |
-| Calculator | 214 | 998 | 79% |
-| Clean Arch | 509 | 2.417 | 79% |
-| RAG Pipeline | 424 | 2.080 | 80% |
-| Stress (130) | 1.348 | 6.708 | 80% |
-| **TOTALE** | **2.637** | **12.854** | **79%** |
+| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | Est.H2C tok | Est.NL tok | Tok save |
+|---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|
+| 1 | Hello World |       471 |      681 |     31% |        20 |      122 |     84% |         127 |        524 |       76% |
+| 2 | Calculator  |      1067 |     1447 |     26% |        44 |      258 |     83% |         288 |       1113 |       74% |
+| 3 | Clean Arch  |      2191 |     2914 |     25% |        71 |      520 |     86% |         592 |       2242 |       74% |
+| 4 | RAG Pipe    |      3038 |     4013 |     24% |       104 |      717 |     85% |         821 |       3087 |       73% |
+| 5 | Stress      |      9323 |     3941 |   -137% |       267 |      704 |     62% |        2520 |       3032 |       17% |
 
-### Kimi K2.6
-| Scenario | H2C tok | NL tok | Tok save |
-|----------|---------|--------|----------|
-| Hello World | 126 | 524 | 76% |
-| Calculator | 257 | 1.113 | 77% |
-| Clean Arch | 500 | 2.242 | 78% |
-| RAG Pipeline | 670 | 3.087 | 78% |
-| Stress (130) | 1.858 | 3.032 | 39% |
-| **TOTALE** | **3.411** | **9.997** | **66%** |
+TOTAL: H2C chars=16090 | NL chars=12996 | Avg token save=57%
 
-### Grok
-| Scenario | H2C tok | NL tok | Tok save |
-|----------|---------|--------|----------|
-| Hello World | 129 | 240 | 46% |
-| Calculator | 165 | 219 | 25% |
-| Clean Arch | 251 | 368 | 32% |
-| RAG Pipeline | 285 | 324 | 12% |
-| Stress (130) | 580 | 394 | -47% |
-| **TOTALE** | **1.410** | **1.545** | **9%** |
+v1.4 Features:
+  CTX:NEGOTIATE [✓]  STATE:ACK [✓]  BUILD:NACK [✓]  STATE:FINDINGS [✓]
+  CTX:PRUNE     [✓]  CTX:COMPACT [✓]  CTX:FREEZE [✓]  Fix cycle [✓]
+  DAG closure   [✓]
 
-## Riepilogo
+Message Counts: 1=8 | 2=13 | 3=27 | 4=32 | 5=103 msg
 
-| Modello | Token H2C | Token NL | Risparmio | Stress test |
-|---------|-----------|----------|-----------|-------------|
-| GPT-5.5-mini | 2.637 | 12.854 | **79%** | ✅ 80% |
-| Kimi K2.6 | 3.411 | 9.997 | **66%** | ✅ 39% |
-| Claude Sonnet 5 | 2.596 | 4.941 | **47%** | ⚠️ 15% |
-| Grok | 1.410 | 1.545 | **9%** | ❌ -47% |
 
-## Osservazioni
 
-- **GPT-5.5-mini**: miglior risultato, risparmio costante ~79% su tutti gli scenari. Catene H2C ben formate.
-- **Kimi K2.6**: buon risultato (66%), eccetto lo stress test dove l'NL reference è più denso dell'H2C.
-- **Claude Sonnet 5**: discreto sui test semplici (65-72%), ma sullo stress test l'H2C è quasi uguale all'NL — il modello ha generato catene più verbose.
-- **Grok**: ha interpretato il prompt diversamente, generando catene H2C molto corte e NL reference più corti del previsto. Lo stress test è andato in negativo.
+=== H2C v1.4 Deterministic Benchmark ===
+Date: 2026-07-11
+Model: Kimi K2.6
 
-## v1.4 Features (tutti i modelli)
+| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | Est.H2C tok | Est.NL tok | Tok save |
+|---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|
+| 1 | Hello World | 466       | 681      | 31.6%   | 21        | 110      | 80.9%   | 125.9       | 523.8      | 76.0%    |
+| 2 | Calculator  | 952       | 1447     | 34.2%   | 32        | 227      | 85.9%   | 257.3       | 1113.1     | 76.9%    |
+| 3 | Clean Arch  | 1850      | 2914     | 36.5%   | 52        | 409      | 87.3%   | 500.0       | 2241.5     | 77.7%    |
+| 4 | RAG Pipe    | 2478      | 4013     | 38.3%   | 70        | 584      | 88.0%   | 669.7       | 3086.9     | 78.3%    |
+| 5 | Stress      | 6871      | 3941     | -74.3%  | 220       | 563      | 60.9%   | 1857.0      | 3031.5     | 38.7%    |
 
-- [x] CTX:NEGOTIATE handshake
-- [x] STATE:ACK response
-- [x] BUILD:NACK error recovery
-- [x] STATE:FINDINGS formal fields
-- [x] CTX:PRUNE / COMPACT / FREEZE
-- [x] DAG transitive closure
-- [x] Fix cycle con cycle_id + retry_n
+TOTAL: H2C chars=12617 | NL chars=12996 | Avg char save=2.9% | Avg token save=65.9%
 
-## Conclusione
+v1.4 Features:
+  CTX:NEGOTIATE [X]  STATE:ACK [X]  BUILD:NACK [X]  STATE:FINDINGS [X]
+  CTX:PRUNE     [X]  CTX:COMPACT [X]  CTX:FREEZE [X]  Fix cycle [X]
+  DAG closure   [X]
 
-Il benchmark è **parzialmente deterministico**: i modelli che seguono fedelmente le istruzioni producono risultati confrontabili (GPT-5.5, Kimi, Claude). Modelli meno instruction-following (Grok) divergono. L'NL reference fissato funziona come àncora, ma la qualità della catena H2C generata dipende dal modello.
 
----
-
-*Prompt utilizzato:* `conformance/benchmark_prompt.md`
-*Validazione:* `python3 conformance/run.py` sulle fixture ufficiali → 5/5 PASS
+  
