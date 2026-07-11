@@ -116,33 +116,9 @@ class FileTransport(Transport):
 
 
 def _block_to_text(block: Block) -> str:
-    """Serialize a Block back to H2C wire format."""
-    from h2c.parser.ast import (
-        IntegerValue,
-        ListValue,
-        RevisionValue,
-        SignedIntValue,
-        StringValue,
-    )
+    """Serialize a Block back to H2C wire format.
 
-    header = f"[{block.type}:{block.subtype}]"
-    field_strs = []
-    for field in block.fields:
-        v = field.value
-        if isinstance(v, StringValue):
-            val_str = v.data
-        elif isinstance(v, IntegerValue):
-            val_str = str(v.data)
-        elif isinstance(v, SignedIntValue):
-            val_str = f"+{v.data}" if v.data >= 0 else str(v.data)
-        elif isinstance(v, RevisionValue):
-            val_str = f"{v.file}~{v.rev}"
-        elif isinstance(v, ListValue):
-            val_str = "[" + ",".join(v.data) + "]"
-        else:
-            val_str = str(v)
-
-        key = field.key
-        field_strs.append(f"{key}:{val_str}")
-
-    return header + "\n" + "|".join(field_strs)
+    Delegates to H2CSerializer for consistency.
+    """
+    from h2c.transpiler.serializer import serialize_block
+    return serialize_block(block)

@@ -179,13 +179,20 @@ def _cmd_stats(args):
 
 
 def _estimate_tokens(text: str) -> int:
-    """Estimate token count. Uses tiktoken if available, else len/3.2 fallback."""
+    """Estimate token count. Uses tiktoken if available, else calibrated fallback.
+
+    Calibration based on benchmark data:
+      - H2C text averages ~3.7 chars/token
+      - NL text averages ~1.3 chars/token (more tokens for same chars)
+    The fallback assumes H2C-like text (compact, structured).
+    """
     try:
         import tiktoken
         enc = tiktoken.get_encoding("cl100k_base")
         return len(enc.encode(text))
     except (ImportError, Exception):
-        return max(1, int(len(text) / 3.2))
+        # Calibrated: H2C structured text is dense (~3.7 chars/token)
+        return max(1, int(len(text) / 3.7))
 
 
 if __name__ == "__main__":
