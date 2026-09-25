@@ -50,7 +50,7 @@ class ContextManager:
 
     # ── State tracking (call after processing each block) ──────────────────
 
-    def track_block(self, block: Block, block_index: int):
+    def track_block(self, block: Block, block_index: int) -> None:
         """Update tracking state after a block is processed."""
         key = f"{block.type}:{block.subtype}"
 
@@ -168,14 +168,14 @@ class ContextManager:
         ]
         return Block(type="CTX", subtype="FREEZE", fields=fields)
 
-    def reset_after_prune(self):
+    def reset_after_prune(self) -> None:
         self._memory.reset_prune_counter()
 
-    def reset_after_compact(self):
+    def reset_after_compact(self) -> None:
         self._memory.reset_prune_counter()
         self._memory.reset_compact_counter()
 
-    def reset_after_freeze(self):
+    def reset_after_freeze(self) -> None:
         self._memory.reset_all_counters()
 
 

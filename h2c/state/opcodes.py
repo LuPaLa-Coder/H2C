@@ -4,7 +4,6 @@ Implements the side effect table from docs/specification/semantics.md section 2.
 """
 
 import contextlib
-from typing import Any
 
 from h2c.parser.ast import Block, IntegerValue, ListValue, StringValue
 from h2c.state.fsm import Opcode

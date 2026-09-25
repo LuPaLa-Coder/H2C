@@ -6,7 +6,6 @@ from SPEC.md sections 3-8 and docs/specification/grammar.md section 2.
 
 from typing import Optional
 
-
 # ── Block field schemas ──────────────────────────────────────────────────────
 
 # Each entry: (required: frozenset, optional: frozenset, recommended: frozenset)

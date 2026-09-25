@@ -10,6 +10,8 @@ from h2c.parser.ast import Block
 from h2c.state.fsm import StateMachine
 from h2c.state.opcodes import SideEffectApplier
 
+BlockHandler = Callable[[Block], Optional[Block]]
+
 
 class Dispatcher:
     """Routes H2C blocks to registered handlers based on type/subtype."""
@@ -21,7 +23,7 @@ class Dispatcher:
     ):
         self._fsm = state_machine
         self._ctx = context
-        self._handlers: dict[str, Callable] = {}
+        self._handlers: dict[str, BlockHandler] = {}
         self._register_defaults()
 
     def dispatch(self, block: Block, block_index: int = -1) -> Optional[Block]:
@@ -44,11 +46,11 @@ class Dispatcher:
 
         return result
 
-    def register(self, type_subtype: str, handler: Callable):
+    def register(self, type_subtype: str, handler: BlockHandler) -> None:
         """Register a custom handler for a block type."""
         self._handlers[type_subtype] = handler
 
-    def _register_defaults(self):
+    def _register_defaults(self) -> None:
         """Register default handlers that implement the routing table."""
         self._handlers["CTX:NEGOTIATE"] = self._handle_negotiate
         self._handlers["STATE:ACK"] = self._handle_ack
