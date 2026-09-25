@@ -24,7 +24,7 @@ class YAMLCodegen:
         return _emit_yaml({"messages": [self.generate_block(b) for b in message.blocks]})
 
     def generate_block(self, block: Block) -> dict[str, Any]:
-        fields = {}
+        fields: dict[str, Any] = {}
         for f in block.fields:
             v = f.value
             if isinstance(v, (StringValue, IntegerValue, SignedIntValue, ListValue)):
@@ -34,7 +34,7 @@ class YAMLCodegen:
         return {f"{block.type.lower()}_{block.subtype.lower()}": fields}
 
 
-def _emit_yaml(obj, indent: int = 0) -> str:
+def _emit_yaml(obj: Any, indent: int = 0) -> str:
     """Minimal YAML emitter (no external dependency)."""
     prefix = "  " * indent
     lines = []
@@ -78,7 +78,7 @@ def _emit_yaml(obj, indent: int = 0) -> str:
     return "\n".join(filter(None, lines))
 
 
-def _yaml_str(value) -> str:
+def _yaml_str(value: Any) -> str:
     """Quote a string for YAML if needed."""
     s = str(value)
     # Simple heuristic: quote strings that look like they need it

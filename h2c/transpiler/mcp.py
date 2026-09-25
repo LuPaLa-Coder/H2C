@@ -42,7 +42,7 @@ class MCPCodegen:
             StringValue,
         )
 
-        args = {}
+        args: dict[str, Any] = {}
         for field in block.fields:
             key = field.key.lstrip("~")
             val = field.value

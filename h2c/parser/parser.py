@@ -392,7 +392,7 @@ class Parser:
             )
         return self._consume()
 
-    def _recover(self):
+    def _recover(self) -> None:
         """Skip tokens until next LBRACKET or EOF (per §5.2)."""
         while self._pos < len(self._tokens):
             if self._peek_type() in (TokenType.LBRACKET, TokenType.EOF):

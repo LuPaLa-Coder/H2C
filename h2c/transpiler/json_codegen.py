@@ -15,6 +15,7 @@ from h2c.parser.ast import (
     RevisionValue,
     SignedIntValue,
     StringValue,
+    Value,
 )
 
 
@@ -38,7 +39,7 @@ class JSONCodegen:
         }
 
 
-def _value_to_json(v) -> Any:
+def _value_to_json(v: Value) -> Any:
     if isinstance(v, (StringValue, IntegerValue, SignedIntValue)):
         return v.data
     elif isinstance(v, RevisionValue):
