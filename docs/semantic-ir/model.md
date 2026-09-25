@@ -35,13 +35,11 @@ The H2C Semantic IR is an intermediate representation that captures the meaning 
         "deps": ["openweathermap"]
       },
       "embedding": [0.1, 0.2, ...],
-      "tokens": 55,
-      "tokens_nl_equivalent": 170
+      "tokens": 55
     }
   ],
   "metrics": {
     "total_tokens": 200,
-    "total_tokens_nl": 5000,
     "chain_length": 15,
     "fix_cycles": 0,
     "context_operations": {
