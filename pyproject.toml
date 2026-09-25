@@ -29,7 +29,7 @@ Repository = "https://github.com/LuPaLa-Coder/H2C"
 h2c = "h2c.cli.main:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-cov"]
+dev = ["pytest>=8", "pytest-cov", "tiktoken"]
 yaml = ["pyyaml"]
 
 [tool.setuptools.packages.find]

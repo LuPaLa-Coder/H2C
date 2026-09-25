@@ -22,13 +22,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PROMPT_FILE = ROOT / "conformance" / "benchmark_prompt.md"
 
-# ── Constants ───────────────────────────────────────────────────────────────────
+# ── Token counting (tiktoken, o200k_base) ──────────────────────────────────────
 
-CHARS_PER_TOKEN_H2C = 3.7
-CHARS_PER_TOKEN_NL = 1.3
+ENCODING_NAME = "o200k_base"
+_ENCODER = None
 
+FIXTURES_DIR = ROOT / "tests" / "fixtures"
+# Solo gli scenari 1-4 sono confrontabili: l'NL n.5 di benchmark_prompt.md è
+# "Microservices Migration", la fixture 5 è lo stress test da 130 messaggi.
+FIXTURE_FILES = [
+    "test1-hello-world.h2c",
+    "test2-calculator.h2c",
+    "test3-clean-arch.h2c",
+    "test4-rag-pipeline.h2c",
+]
 
-# ── Counting utilities (deterministic) ──────────────────────────────────────────
 
 def count_chars(text: str) -> int:
     return len(text)
@@ -38,16 +46,16 @@ def count_words(text: str) -> int:
     return len(text.split())
 
 
-def est_tokens(text: str, ratio: float) -> int:
-    return round(len(text) / ratio)
-
-
-def est_tokens_h2c(text: str) -> int:
-    return est_tokens(text, CHARS_PER_TOKEN_H2C)
-
-
-def est_tokens_nl(text: str) -> int:
-    return est_tokens(text, CHARS_PER_TOKEN_NL)
+def count_tokens(text: str) -> int:
+    """Token reali con tiktoken. Nessuna stima di ripiego: senza tiktoken è un errore."""
+    global _ENCODER
+    if _ENCODER is None:
+        try:
+            import tiktoken
+        except ImportError as exc:
+            raise RuntimeError("tiktoken non installato: pip install tiktoken") from exc
+        _ENCODER = tiktoken.get_encoding(ENCODING_NAME)
+    return len(_ENCODER.encode(text))
 
 
 # ── Extract NL references from benchmark_prompt.md ─────────────────────────────
@@ -127,7 +135,7 @@ def compute_nl_metrics(scenarios: list[dict]) -> list[dict]:
             "name": s["name"],
             "chars": c,
             "words": w,
-            "est_tokens": est_tokens_nl(text),
+            "tokens": count_tokens(text),
         })
     return results
 
@@ -213,12 +221,12 @@ def compute_h2c_metrics(scenarios: list[dict], chains: list[dict]) -> list[dict]
             "nl": {
                 "chars": s["chars"],
                 "words": s["words"],
-                "est_tokens": s["est_tokens"],
+                "tokens": s["tokens"],
             },
             "h2c": {
                 "chars": count_chars(text),
                 "words": count_words(text),
-                "est_tokens": est_tokens_h2c(text),
+                "tokens": count_tokens(text),
                 "text": text,
             },
             "found": match is not None,
@@ -255,7 +263,7 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
         Date: <YYYY-MM-DD>
         Model: <model>
 
-        | # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | Est.H2C tok | Est.NL tok | Tok save |
+        | # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |
         |---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|
         ...
         TOTAL: H2C chars=<N> | NL chars=<N> | Avg char save=<X>% | Avg token save=<X>%
@@ -270,7 +278,7 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
     lines.append(f"Date: 2026-07-11")
     lines.append(f"Model: {model_name}")
     lines.append("")
-    lines.append("| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | Est.H2C tok | Est.NL tok | Tok save |")
+    lines.append("| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |")
     lines.append("|---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|")
 
     total_h2c_chars = 0
@@ -290,8 +298,8 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
         nl_ch = nl["chars"]
         h2c_w = h2c["words"]
         nl_w = nl["words"]
-        h2c_tok = h2c["est_tokens"]
-        nl_tok = nl["est_tokens"]
+        h2c_tok = h2c["tokens"]
+        nl_tok = nl["tokens"]
 
         ch_save = round((1 - h2c_ch / nl_ch) * 100, 1) if nl_ch else 0.0
         wd_save = round((1 - h2c_w / nl_w) * 100, 1) if nl_w else 0.0
@@ -381,7 +389,7 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         "# H2C v1.4 — Benchmark Results",
         "",
         "Benchmark eseguito con `conformance/benchmark.py` (deterministico).",
-        "Data: 2026-07-11. Metodo: caratteri, parole, token stimati (chars÷3.7 H2C, chars÷1.3 NL).",
+        "Metodo: token reali con tiktoken o200k_base. Delta positivo = H2C costa più token dell'NL.",
         "",
         "**Le metriche NL sono PRE-COMPUTATE e IDENTICHE per tutti i modelli.**",
         "Il confronto è valido perché solo le catene H2C provengono dal LLM.",
@@ -393,7 +401,7 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         metrics = model_data.get("metrics", [])
         lines.append(f"## {model_name}")
         lines.append("")
-        lines.append("| Scenario | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | Est.H2C tok | Est.NL tok | Tok save |")
+        lines.append("| Scenario | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |")
         lines.append("|----------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|")
 
         total_h2c_ch = 0
@@ -410,19 +418,19 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
 
             ch_save = round((1 - h2c["chars"] / nl["chars"]) * 100, 1) if nl["chars"] else 0.0
             wd_save = round((1 - h2c["words"] / nl["words"]) * 100, 1) if nl["words"] else 0.0
-            tok_save = round((1 - h2c["est_tokens"] / nl["est_tokens"]) * 100, 1) if nl["est_tokens"] else 0.0
+            tok_save = round((1 - h2c["tokens"] / nl["tokens"]) * 100, 1) if nl["tokens"] else 0.0
 
             total_h2c_ch += h2c["chars"]
             total_nl_ch += nl["chars"]
             total_h2c_w += h2c["words"]
             total_nl_w += nl["words"]
-            total_h2c_tok += h2c["est_tokens"]
-            total_nl_tok += nl["est_tokens"]
+            total_h2c_tok += h2c["tokens"]
+            total_nl_tok += nl["tokens"]
 
             lines.append(
                 f"| {sname} | {h2c['chars']} | {nl['chars']} | "
                 f"{f'{ch_save}%':<7} | {h2c['words']} | {nl['words']} | "
-                f"{f'{wd_save}%':<7} | {h2c['est_tokens']:.1f} | {nl['est_tokens']:.1f} | {f'{tok_save}%':<7} |"
+                f"{f'{wd_save}%':<7} | {h2c['tokens']:.1f} | {nl['tokens']:.1f} | {f'{tok_save}%':<7} |"
             )
 
         avg_ch_save = round((1 - total_h2c_ch / total_nl_ch) * 100, 1) if total_nl_ch else 0.0
@@ -445,10 +453,10 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         all_model_metrics,
         key=lambda md: (
             round(
-                (1 - sum(m["h2c"]["est_tokens"] for m in md["metrics"])
-                 / sum(m["nl"]["est_tokens"] for m in md["metrics"])) * 100, 1
+                (1 - sum(m["h2c"]["tokens"] for m in md["metrics"])
+                 / sum(m["nl"]["tokens"] for m in md["metrics"])) * 100, 1
             )
-            if sum(m["nl"]["est_tokens"] for m in md["metrics"]) else 0.0
+            if sum(m["nl"]["tokens"] for m in md["metrics"]) else 0.0
         ),
         reverse=True,
     )
@@ -456,8 +464,8 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
     for model_data in sorted_models:
         model_name = model_data.get("model", "Unknown")
         metrics = model_data["metrics"]
-        total_h2c = sum(m["h2c"]["est_tokens"] for m in metrics)
-        total_nl = sum(m["nl"]["est_tokens"] for m in metrics)
+        total_h2c = sum(m["h2c"]["tokens"] for m in metrics)
+        total_nl = sum(m["nl"]["tokens"] for m in metrics)
         total_h2c_ch = sum(m["h2c"]["chars"] for m in metrics)
         total_nl_ch = sum(m["nl"]["chars"] for m in metrics)
         save_tok = round((1 - total_h2c / total_nl) * 100, 1) if total_nl else 0.0
@@ -487,13 +495,17 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
 def cmd_data():
     """Show pre-computed NL reference metrics."""
     scenarios = extract_nl_references()
-    metrics = compute_nl_metrics(scenarios)
+    try:
+        metrics = compute_nl_metrics(scenarios)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
 
     print("=" * 72)
     print("  H2C Benchmark — NL Reference Metrics (pre-computed, deterministic)")
     print("=" * 72)
     print()
-    print(f"{'#':>3} {'Scenario':<30} {'Chars':>8} {'Words':>8} {'Est.Tok':>8}")
+    print(f"{'#':>3} {'Scenario':<30} {'Chars':>8} {'Words':>8} {'Tokens':>8}")
     print(f"{'':3} {'':30} {'':8} {'':8} {'':8}")
     print("-" * 60)
 
@@ -502,10 +514,10 @@ def cmd_data():
     total_tokens = 0
 
     for i, m in enumerate(metrics):
-        print(f"{i+1:>3} {m['name']:<30} {m['chars']:>8} {m['words']:>8} {m['est_tokens']:>8}")
+        print(f"{i+1:>3} {m['name']:<30} {m['chars']:>8} {m['words']:>8} {m['tokens']:>8}")
         total_chars += m["chars"]
         total_words += m["words"]
-        total_tokens += m["est_tokens"]
+        total_tokens += m["tokens"]
 
     print("-" * 60)
     print(f"{'':3} {'TOTALE':<30} {total_chars:>8} {total_words:>8} {total_tokens:>8}")
@@ -542,7 +554,11 @@ def cmd_report():
         sys.exit(1)
 
     scenarios = extract_nl_references()
-    metrics = compute_nl_metrics(scenarios)
+    try:
+        metrics = compute_nl_metrics(scenarios)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
     chains = extract_h2c_chains(llm_output)
 
     if not chains:
@@ -553,7 +569,11 @@ def cmd_report():
         print(llm_output[:500])
         sys.exit(1)
 
-    result = compute_h2c_metrics(metrics, chains)
+    try:
+        result = compute_h2c_metrics(metrics, chains)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
 
     # Print the per-model report
     report = generate_report(result, args.model)
@@ -593,6 +613,48 @@ def cmd_report():
         print(json.dumps(result, indent=2, default=str))
 
 
+# ── Misura deterministica sulle fixture del repo ──────────────────────────────
+
+def measure_fixtures() -> list[dict]:
+    """NL di riferimento (benchmark_prompt.md) contro le fixture ufficiali."""
+    rows = []
+    for scenario, name, filename in zip(
+        extract_nl_references(), SCENARIO_NAMES_SHORT, FIXTURE_FILES
+    ):
+        nl = count_tokens(scenario["text"])
+        h2c = count_tokens((FIXTURES_DIR / filename).read_text())
+        rows.append({
+            "name": name,
+            "nl_tokens": nl,
+            "h2c_tokens": h2c,
+            "delta_pct": round((h2c - nl) / nl * 100),
+        })
+    return rows
+
+
+def render_fixtures_markdown(rows: list[dict]) -> str:
+    lines = [
+        f"Tokenizer: tiktoken `{ENCODING_NAME}`. "
+        "Riproduci con: `python3 conformance/benchmark.py fixtures`",
+        "",
+        "| Scenario | NL (tok) | H2C (tok) | Delta |",
+        "|---|--:|--:|--:|",
+    ]
+    for r in rows:
+        lines.append(
+            f"| {r['name']} | {r['nl_tokens']} | {r['h2c_tokens']} | {r['delta_pct']:+d}% |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def cmd_fixtures():
+    try:
+        print(render_fixtures_markdown(measure_fixtures()))
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     if len(sys.argv) < 2:
         print("Uso:")
@@ -602,6 +664,7 @@ def main():
         print("    --model NAME      Nome modello da includere nel report")
         print("    --save FILE       Salva dati JSON (appende se --model è usato)")
         print("    --json            Output JSON per piping")
+        print("  python3 conformance/benchmark.py fixtures                  # NL di riferimento vs fixture del repo (token reali)")
         print()
         print("Workflow:")
         print("  1. Copia-incolla conformance/benchmark_prompt.md nella chat LLM")
@@ -614,6 +677,8 @@ def main():
         cmd_data()
     elif cmd == "report":
         cmd_report()
+    elif cmd == "fixtures":
+        cmd_fixtures()
     else:
         print(f"Comando sconosciuto: {cmd}", file=sys.stderr)
         sys.exit(1)
