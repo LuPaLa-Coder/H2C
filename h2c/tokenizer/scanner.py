@@ -3,6 +3,16 @@
 Implements the scanning algorithm from docs/parser/architecture.md section 2.2.
 Uses manual scanning with re.match at each position for correct PEG-like
 token type resolution: TYPE before KEY, SUBTYPE before KEY, etc.
+
+Two context rules keep the scanner from stealing data out of field values
+(see "Analisi critica H2C v1.4", section 2):
+
+1. TYPE / SUBTYPE keywords are only recognized inside ``[...]`` (block header
+   or list). Outside brackets ``desc:ARCHive_old_files`` stays a single STRING
+   instead of collapsing to ``ARCH``.
+2. INTEGER only matches a run of digits *not* followed by an identifier
+   character, so ``~goal:4_layers_clean_sep`` stays a STRING instead of
+   splitting into ``4`` + ``_layers_clean_sep``.
 """
 
 import re
@@ -33,7 +43,9 @@ _SUBTYPE_RE = re.compile(
     r"END|PROMPT"
 )
 _KEY_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
-_INTEGER_RE = re.compile(r"[0-9]+")
+# Digits are an INTEGER only when the whole run is standalone — not the numeric
+# prefix of a longer identifier like "4_layers" or "3d".
+_INTEGER_RE = re.compile(r"[0-9]+(?![0-9a-zA-Z_])")
 _STRING_RE = re.compile(r"[^\[\]\|\n:]+")
 
 
@@ -44,6 +56,7 @@ class Scanner:
         self._text = text
         self._pos = 0
         self._line = 1
+        self._bracket_depth = 0  # >0 while inside a block header or a [...] list
 
     def scan(self) -> Iterator[Token]:
         """Lazily yield tokens from the input text."""
@@ -77,6 +90,10 @@ class Scanner:
 
             # Single-character tokens
             if ch in _SINGLE_CHAR:
+                if ch == "[":
+                    self._bracket_depth += 1
+                elif ch == "]":
+                    self._bracket_depth = max(0, self._bracket_depth - 1)
                 yield self._make(_SINGLE_CHAR[ch], ch)
                 self._pos += 1
                 continue
@@ -84,17 +101,21 @@ class Scanner:
             # Multi-character tokens — try in PEG order
             remaining = self._text[self._pos:]
 
-            m = _TYPE_RE.match(remaining)
-            if m:
-                yield self._make(TokenType.TYPE, m.group())
-                self._pos += len(m.group())
-                continue
+            # TYPE / SUBTYPE keywords only carry meaning inside [...] — either the
+            # block header "[TYPE:SUBTYPE]" or a list like "[PRUNE,COMPACT]".
+            # Outside brackets they are ordinary value text.
+            if self._bracket_depth > 0:
+                m = _TYPE_RE.match(remaining)
+                if m and self._is_word_boundary(m.end()):
+                    yield self._make(TokenType.TYPE, m.group())
+                    self._pos += len(m.group())
+                    continue
 
-            m = _SUBTYPE_RE.match(remaining)
-            if m:
-                yield self._make(TokenType.SUBTYPE, m.group())
-                self._pos += len(m.group())
-                continue
+                m = _SUBTYPE_RE.match(remaining)
+                if m and self._is_word_boundary(m.end()):
+                    yield self._make(TokenType.SUBTYPE, m.group())
+                    self._pos += len(m.group())
+                    continue
 
             m = _INTEGER_RE.match(remaining)
             if m:
@@ -125,6 +146,17 @@ class Scanner:
 
     def _make(self, type_: TokenType, value: str) -> Token:
         return Token(type=type_, value=value, pos=self._pos, line=self._line)
+
+    def _is_word_boundary(self, offset: int) -> bool:
+        """True if the char at pos+offset does not continue an identifier.
+
+        Stops ``FIX`` from matching inside ``FIXture`` even within brackets.
+        """
+        idx = self._pos + offset
+        if idx >= len(self._text):
+            return True
+        nxt = self._text[idx]
+        return not (nxt.isalnum() or nxt == "_")
 
 
 def tokenize(text: str) -> List[Token]:

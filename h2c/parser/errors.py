@@ -3,6 +3,33 @@
 Implements the error taxonomy from docs/parser/architecture.md section 5.1.
 """
 
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Diagnostic:
+    """A non-fatal problem found while parsing.
+
+    The parser recovers and keeps going, but records the problem here instead
+    of discarding data silently (see "Analisi critica H2C v1.4", section 2:
+    "parse() ... mai un drop silenzioso").
+    """
+
+    level: str          # "error" | "warning"
+    code: str           # "empty-value" | "dropped-block" | "duplicate-key" | ...
+    message: str
+    line: int = -1
+    pos: int = -1
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "level": self.level,
+            "code": self.code,
+            "message": self.message,
+            "line": self.line,
+            "pos": self.pos,
+        }
+
 
 class H2CParseError(Exception):
     """Base class for all H2C parsing errors."""

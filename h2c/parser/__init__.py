@@ -11,8 +11,13 @@ from h2c.parser.ast import (
     IntegerValue,
     SignedIntValue,
 )
-from h2c.parser.parser import Parser, parse
-from h2c.parser.errors import H2CParseError, UnexpectedToken, MalformedBlock
+from h2c.parser.parser import Parser, ParseResult, parse, parse_with_diagnostics
+from h2c.parser.errors import (
+    Diagnostic,
+    H2CParseError,
+    UnexpectedToken,
+    MalformedBlock,
+)
 
 __all__ = [
     "Type",
@@ -27,7 +32,10 @@ __all__ = [
     "IntegerValue",
     "SignedIntValue",
     "Parser",
+    "ParseResult",
     "parse",
+    "parse_with_diagnostics",
+    "Diagnostic",
     "H2CParseError",
     "UnexpectedToken",
     "MalformedBlock",
