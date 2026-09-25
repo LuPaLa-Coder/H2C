@@ -214,7 +214,10 @@ def _count_tokens(text: str) -> tuple[int, bool]:
         import tiktoken
         enc = tiktoken.get_encoding("o200k_base")
         return len(enc.encode(text)), True
-    except ImportError:
+    except Exception:
+        # Broad exception handling: tiktoken import may fail (ImportError), but also
+        # get_encoding may fail due to network issues when downloading the encoding file
+        # (OSError, RuntimeError, requests.RequestException, etc.). We fall back gracefully.
         # H2C wire text measured at ~2.7 chars/token on o200k_base (coarse, inexact estimate).
         return max(1, round(len(text) / FALLBACK_CHARS_PER_TOKEN)), False
 

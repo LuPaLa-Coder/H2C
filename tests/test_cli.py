@@ -28,6 +28,20 @@ class TestCountTokens:
         assert isinstance(result[0], int)
         assert isinstance(result[1], bool)
 
+    def test_count_tokens_fallback_on_encoding_download_failure(self, monkeypatch):
+        """_count_tokens should fall back to inexact estimate when encoding download fails (OSError)."""
+        import tiktoken
+
+        # Simulate encoding download failure (e.g., network error)
+        def mock_get_encoding(name):
+            raise OSError("Encoding not found or network error")
+
+        monkeypatch.setattr(tiktoken, "get_encoding", mock_get_encoding)
+
+        tokens, exact = _count_tokens("hello world")
+        assert exact is False, "Expected exact=False when encoding download fails"
+        assert isinstance(tokens, int) and tokens > 0, f"Expected positive int, got {tokens}"
+
 
 class TestTranspileCommand:
     """Tests for the transpile command."""
