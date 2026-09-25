@@ -54,8 +54,9 @@ upgrade prima di fidarsi del risultato.
 
 ### Cosa fare se NON sei un modello frontier
 
-Produci comunque il blocco — sarà semanticamente equivalente e funzionerà zero-shot
-in qualunque LLM downstream. Però rispetta queste tre cose non negoziabili:
+Produci comunque il blocco — la mappatura campo-per-frase resta la stessa, solo il
+formato di output può variare (canonical vs dialect). Però rispetta queste tre cose
+non negoziabili:
 
 1. **Calcola davvero i token** con `tiktoken` o fallback `len/3.2`. Mai inventare le %.
 2. **Avvisa l'utente in chiusura** che il formato emesso è dialect, non strict H2C v1.3.
@@ -187,8 +188,7 @@ davvero eseguire un prompt non invoca `h2c_compress`.
       mappatura naturale (vanno in `notes:`).
 
    e. **Indicazione d'uso**: una riga che spiega come riusare il blocco
-      ("Incolla questo blocco al posto del prompt originale. Qualunque LLM
-      moderno capisce H2C zero-shot.").
+      ("Incolla questo blocco al posto del prompt originale.").
 
 5. **Onestà sui costi**: spiega che la conversione riguarda solo gli **input
    token**, non gli output, e che non c'è un rapporto fisso di risparmio —
@@ -284,8 +284,8 @@ nella SKILL?". Se no → sposta il contenuto in `notes:` e ometti il campo.
 id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEATHER_API_KEY)|pattern:router,service|tools:[weather:{current,forecast}]|struct:[main.py,routers/weather.py,services/{weather_service.py,cache_service.py},models/weather.py,config.py,.env]|deps:OpenWeatherMap|notes:[cache_TTL_10min,rate-limit_60req-min,httpx_async]
 ```
 
-**Equivalenza semantica: 100%** (mappatura 1:1 verificata: ogni vincolo del
-prompt NL ha il suo campo nel blocco H2C).
+**Mappatura campo-per-frase verificata**: ogni vincolo del prompt NL ha il suo
+campo nel blocco H2C (vedi lista sopra).
 
 ## Quando dichiarare "non comprimibile"
 

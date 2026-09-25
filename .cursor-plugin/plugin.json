@@ -9,5 +9,5 @@
   "homepage": "https://github.com/LuPaLa-Coder/H2C",
   "repository": "https://github.com/LuPaLa-Coder/H2C",
   "license": "MIT",
-  "keywords": ["h2c", "agent-handoff", "ai-to-ai", "agent-orchestration", "token-optimization", "prompt-compression", "multi-agent"]
+  "keywords": ["h2c", "agent-handoff", "ai-to-ai", "agent-orchestration", "structured-output", "agent-protocol", "multi-agent"]
 }

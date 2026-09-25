@@ -14,7 +14,6 @@
 | Automatic parsing | Impossible | Formal EBNF |
 | Versioning | Absent | rev/base_rev |
 | Fix cycles | Implicit | Explicit (cycle_id) |
-| Cross-model | Fragile | Zero-shot |
 
 Token cost is not listed here — it varies by prompt and is measured, not
 estimated: see [conformance/Result.md](../../conformance/Result.md).
@@ -76,7 +75,6 @@ estimated: see [conformance/Result.md](../../conformance/Result.md).
 | Context pruning | ✗ | ✗ | ✗ | ✗ | ✓ |
 | File versioning | ✗ | ✗ | ✗ | ✗ | ✓ |
 | Fix cycles (retry) | ✗ | ✗ | ✗ | ✗ | ✓ |
-| LLM zero-shot | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Human readable | ✓ | ✗ | ✓ | ✗ | ✓ |
 
 ---

@@ -23,7 +23,15 @@ CLAIM_RE = re.compile(
     r"|(?:reduc\w*|riduzion\w*|risparm\w*|sav\w*)[^.\n]{0,40}token[^.\n]{0,40}\d{2}\s?%"
     r"|token[^.\n]{0,40}(?:reduc\w*|riduzion\w*|risparm\w*|sav\w*)[^.\n]{0,40}\d{2}\s?%"
     r"|riduzione\s+token\s*:\s*\d{2}"
-    r"|semantic\s+compression|compressione\s+semantica",
+    r"|semantic\s+compression|compressione\s+semantica"
+    r"|\bzero-shot\b"
+    r"|\bcross-model\w*\b.{0,40}\bvalidat\w*"
+    r"|\bvalidat\w*.{0,40}\bcross-model\w*"
+    r"|\bvalidated on\b.{0,40}(?:claude|gpt|gemini|llama|opus|sonnet|deepseek)"
+    r"|\d{2,3}\s?%\s*(?:semantic|semantica)"
+    r"|equivalenza semantica:\s*\d"
+    r"|prompt-compression"
+    r"|token-optimization",
     re.IGNORECASE,
 )
 
@@ -58,6 +66,13 @@ def _files():
         "Riduzione token: 75-93% vs linguaggio naturale.",
         "H2C Semantic Compression Protocol",
         "Compressione semantica per RAG",
+        "works zero-shot across all LLMs",
+        "Cross-model validated (Sonnet 4.6, Opus 4.7)",
+        "Equivalenza semantica: 100%",
+        "100% semantic fidelity",
+        "Data validated on Claude Sonnet 4.6",
+        "prompt-compression",
+        "token-optimization",
     ],
 )
 def test_claim_regex_catches_old_claims(text):
@@ -66,6 +81,10 @@ def test_claim_regex_catches_old_claims(text):
 
 def test_claim_regex_ignores_measured_table_cells():
     assert not CLAIM_RE.search("| Hello World | 131 | 204 | +56% |")
+
+
+def test_claim_regex_ignores_honest_negative_disclaimer():
+    assert not CLAIM_RE.search("We have not published a cross-model benchmark yet.")
 
 
 def test_repo_has_no_token_savings_claims():

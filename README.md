@@ -30,7 +30,7 @@ Non è un formato di prompt. È un **wire protocol per agenti AI.**
 | Problema | Impatto | Soluzione H2C |
 |----------|---------|---------------|
 | Nessun protocollo agenti analizzabile | Orchestrator leggono testo libero | Blocchi strutturati con campi tipizzati |
-| Fragilità cross-modello | Prompt falliscono tra famiglie di modelli | Grammatica autodescrittiva, zero-shot cross-modello |
+| Fragilità cross-modello | Prompt falliscono tra famiglie di modelli | Grammatica piccola e testuale, validata dal parser di riferimento (nessun benchmark cross-modello ancora pubblicato) |
 | Nessun handoff versionato tra agenti | Gli agenti non possono riprendere conversazioni | `rev`/`base_rev`, `cycle_id`, `STATE:FINDINGS` |
 | Handoff ambigui tra agenti | Stato perso o reinterpretato | Blocchi tipizzati, validator, FSM |
 

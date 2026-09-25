@@ -13,7 +13,7 @@
 | S1 | **Deterministic parsing** of agent handoffs | Orchestrators stop regex-parsing prose |
 | S2 | **Formal grammar** with EBNF specification | Analyzable, validatable, implementable |
 | S3 | **Zero dependencies** — text-only | Immediate adoption, no libraries required |
-| S4 | **Cross-model validated** (Sonnet 4.6, Opus 4.7) | Not tied to a single vendor |
+| S4 | **Vendor-neutral grammar** — text-only, no model-specific tooling | Not tied to a single vendor (cross-model behavior not yet benchmarked) |
 | S5 | **Native context management** (PRUNE/COMPACT/FREEZE) | Long chains without degradation |
 | S6 | **Backward compatibility** (v1.0 → v1.3) | Protected investment |
 | S7 | **MIT License** | Free adoption, open contributions |
@@ -60,7 +60,7 @@
 | T3 | **LLM context window grows** (1M+ token) reduces urgency | Focus on parsing and orchestration, not just compression |
 | T4 | **No external contributors** | Early engagement, clear documentation |
 | T5 | **Similar projects emerge** (e.g. Anthropic MCP, OpenAI structured outputs) | Clear differentiation (H2C = agent semantics, not tool call) |
-| T6 | **LLM model API changes** break zero-shot | Stable specification, backward compat |
+| T6 | **LLM model API changes** break unvalidated model-specific assumptions | Stable specification, backward compat |
 | T7 | **Competition from JSON Schema + JSON-RPC** | Show structural limits of JSON for agent semantics |
 
 ---
