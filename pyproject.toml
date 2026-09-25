@@ -32,9 +32,6 @@ h2c = "h2c.cli.main:main"
 dev = ["pytest>=8", "pytest-cov", "tiktoken"]
 yaml = ["pyyaml"]
 
-[tool.setuptools.packages.find]
-include = ["h2c*"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

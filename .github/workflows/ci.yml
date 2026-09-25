@@ -57,7 +57,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install mypy
-        run: pip install mypy
+        run: pip install mypy tiktoken pyyaml
 
       - name: Type check
-        run: mypy h2c/ --ignore-missing-imports || true
+        run: mypy h2c/
