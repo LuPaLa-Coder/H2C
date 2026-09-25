@@ -1,4 +1,4 @@
-# H2C Semantic Compression Protocol
+# H2C — Structured Agent Handoff Protocol
 
 **Protocollo di handoff strutturato tra agenti AI: blocchi tipizzati, parsing deterministico, stato versionato.**
 
@@ -11,13 +11,13 @@ Licenza:    MIT
 Specifica:  SPEC.md
 ```
 
-> **NON** è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro per connessioni HTTP/1.1. Questo H2C è un **protocollo di compressione semantica per comunicazione AI-to-AI**, grammaticalmente e funzionalmente indipendente. Vedi [Confronto con alternative](docs/comparisons/vs-alternatives.md) per la disambiguazione completa.
+> **NON** è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro per connessioni HTTP/1.1. Questo H2C è un **protocollo di handoff strutturato tra agenti AI**, grammaticalmente e funzionalmente indipendente. Vedi [Confronto con alternative](docs/comparisons/vs-alternatives.md) per la disambiguazione completa.
 
 ---
 
 ## Visione
 
-I sistemi multi-agente oggi comunicano in linguaggio naturale — verboso, ridondante, non analizzabile. Ogni piano architetturale costa 500–2000 token. Ogni ciclo build-test-fix brucia migliaia di token. Spiegazioni, cortesie, markdown e ripetizioni dominano il cablaggio.
+I sistemi multi-agente oggi comunicano in linguaggio naturale — verboso, ridondante, non analizzabile. Ogni piano architetturale, ogni ciclo build-test-fix, ogni handoff tra agenti passa per prosa libera che va reinterpretata ad ogni passaggio. Spiegazioni, cortesie, markdown e ripetizioni dominano il cablaggio.
 
 H2C sostituisce il linguaggio naturale con una grammatica a blocchi strutturata progettata per il parsing nativo da LLM. È un **protocollo di handoff strutturato**: stato esplicito e versionato, parsing deterministico invece di interpretazione di prosa.
 
@@ -173,7 +173,7 @@ interpretare prosa.
 - **Orchestrazione multi-agente**: Cicli Architetto → Builder → Tester con tracciamento retry
 - **Catene di agenti di lunga durata**: Conversazioni 100+ messaggi con pruning contesto
 - **Handoff LLM-to-LLM**: Agente A produce output strutturato per Agente B senza parsing NL
-- **IR Cognitivo**: Compressione semantica per retrieval-augmented generation
+- **IR Cognitivo**: Handoff strutturato per retrieval-augmented generation
 - **Trasporto ragionamento**: Trasportare catene di ragionamento intermedio compresse tra chiamate LLM
 - **Protocollo runtime agenti**: Formato standard per piattaforme di hosting agenti
 

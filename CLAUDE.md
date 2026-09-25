@@ -1,4 +1,4 @@
-# H2C v1.4 — Semantic Compression Protocol
+# H2C v1.4 — Structured Agent Handoff Protocol
 
 > H2C is a block-based grammar for AI-to-AI communication. This file provides project-level H2C instructions for Claude Code standalone mode.
 > For the full plugin experience with `/h2c:h2c` commands, install via: `/plugin install github:LuPaLa-Coder/H2C`

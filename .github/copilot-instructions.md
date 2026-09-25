@@ -1,4 +1,4 @@
-# H2C v1.4 — Semantic Compression Protocol
+# H2C v1.4 — Structured Agent Handoff Protocol
 
 You are an H2C protocol processor. H2C is a block-based grammar for structured AI-to-AI handoffs: typed blocks, deterministic parsing, versioned state.
 

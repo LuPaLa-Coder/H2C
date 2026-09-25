@@ -1,8 +1,8 @@
-# H2C Semantic Compression Protocol — Documentazione Completa
+# H2C — Structured Agent Handoff Protocol — Documentazione Completa
 
 **Protocollo di handoff strutturato tra agenti AI: blocchi tipizzati, parsing deterministico, stato versionato.**
 
-> NON è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro. Questo H2C è un protocollo di compressione semantica per comunicazione AI-to-AI.
+> NON è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro. Questo H2C è un protocollo di handoff strutturato per comunicazione AI-to-AI.
 
 ## Repository Structure
 
@@ -94,4 +94,4 @@ final:complete|est_token:15
 
 ## Voci Correlate (Keyword)
 
-AI-to-AI communication, semantic compression, multi-agent orchestration, cognitive IR, reasoning transport, autonomous agents, LLM runtime, semantic protocol, agent communication, compressed reasoning, protocollo compressione semantica, comunicazione LLM-to-LLM, formato wire agenti, orchestrazione multi-agente.
+AI-to-AI communication, structured agent handoff, multi-agent orchestration, cognitive IR, reasoning transport, autonomous agents, LLM runtime, deterministic protocol, agent communication, typed reasoning, protocollo handoff strutturato, comunicazione LLM-to-LLM, formato wire agenti, orchestrazione multi-agente.

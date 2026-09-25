@@ -1,6 +1,6 @@
 ---
 name: h2c
-description: H2C v1.4 Semantic Compression Protocol per comunicazione AI-to-AI strutturata. Usa quando devi tracciare task di sviluppo (BUILD:EXEC/DONE), pianificare architetture (ARCH:PLAN), registrare risultati di test (TEST:PASS/FAIL/FIX), comprimere prompt NL in blocchi tipizzati, o avviare un handshake AI-to-AI.
+description: H2C v1.4 — Protocollo di handoff strutturato tra agenti AI. Usa quando devi tracciare task di sviluppo (BUILD:EXEC/DONE), pianificare architetture (ARCH:PLAN), registrare risultati di test (TEST:PASS/FAIL/FIX), convertire prompt NL in blocchi tipizzati, o avviare un handshake AI-to-AI.
 ---
 
 # H2C v1.4 — Claude Code Plugin

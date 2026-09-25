@@ -1,4 +1,4 @@
-# H2C v1.4 — Protocollo di handoff strutturato tra agenti AI: blocchi tipizzati, parsing deterministico, stato versionato.
+# H2C v1.4 Specification — Structured Agent Handoff Protocol
 
 ## 1. Formal Grammar (BNF)
 

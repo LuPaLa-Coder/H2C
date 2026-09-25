@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Status:** COMPLETE
-**Scope:** SWOT analysis + adoption barriers + industrial requirements for H2C Semantic Compression Protocol.
+**Scope:** SWOT analysis + adoption barriers + industrial requirements for the H2C Structured Agent Handoff Protocol.
 
 ---
 

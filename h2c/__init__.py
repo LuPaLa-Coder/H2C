@@ -1,4 +1,4 @@
-"""H2C Semantic Compression Protocol — Runtime library."""
+"""H2C — Structured Agent Handoff Protocol — Runtime library."""
 
 from h2c._version import __version__  # noqa: F401
 from h2c.parser import parse

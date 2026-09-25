@@ -1,6 +1,6 @@
 # H2C Protocol Documentation
 
-Index of technical documentation for the H2C Semantic Compression protocol.
+Index of technical documentation for the H2C structured agent handoff protocol.
 
 ---
 

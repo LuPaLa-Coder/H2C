@@ -31,7 +31,7 @@ def main():
 def _create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="h2c",
-        description="H2C Semantic Compression Protocol — CLI",
+        description="H2C — Structured Agent Handoff Protocol — CLI",
     )
     sub = parser.add_subparsers(dest="command")
 

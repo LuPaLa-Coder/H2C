@@ -10,13 +10,14 @@
 
 | Dimension | NL | H2C |
 |-----------|:---:|:---:|
-| Tokens | ~5,000/cycle | ~200/cycle |
 | Analyzability | None | Complete |
 | Automatic parsing | Impossible | Formal EBNF |
 | Versioning | Absent | rev/base_rev |
 | Fix cycles | Implicit | Explicit (cycle_id) |
 | Cross-model | Fragile | Zero-shot |
-| Protocol overhead | 30-50% | 5-10% |
+
+Token cost is not listed here — it varies by prompt and is measured, not
+estimated: see [conformance/Result.md](../../conformance/Result.md).
 
 **Conclusion:** NL is the baseline — flexible but unsuitable for agent automation.
 
@@ -26,7 +27,6 @@
 
 | Dimension | JSON | H2C |
 |-----------|:----:|:---:|
-| Tokens (architectural plan) | ~1,200 | ~50 |
 | Formal schema | JSON Schema | EBNF |
 | Native types | string, number, bool, null, array, object | string, list, revision, int |
 | Agent semantics | None | cycle_id, retry_n, PRUNE/COMPACT/FREEZE |
@@ -42,7 +42,6 @@
 
 | Dimension | YAML | H2C |
 |-----------|:----:|:---:|
-| Tokens | ~9,500/3-agent cycle | ~200/cycle |
 | Human readability | High | High |
 | Parsing | Ambiguous (indentation) | Unambiguous (| separators) |
 | Density | 5 files, 20 lines per block | 1 line per block |
@@ -58,7 +57,6 @@
 |-----------|:---:|:---:|
 | Purpose | Tool invocation | Agent communication |
 | Layer | Transport | Semantic |
-| Token overhead | ~300/call | ~15/block |
 | State machine | None | Built-in |
 | Context management | None | PRUNE/COMPACT/FREEZE |
 | Fix cycles | External logic | Native (cycle_id, retry_n) |
@@ -72,7 +70,7 @@
 
 | Feature | NL | JSON | YAML | MCP | H2C |
 |---------|:--:|:----:|:----:|:---:|:---:|
-| Token efficiency | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Deterministic parsing | ✗ | ✓ | ✗ | ✓ | ✓ |
 | Formal grammar | ✗ | JSON Schema | ✗ | ✗ | EBNF |
 | Agent semantics | ✗ | ✗ | ✗ | ✗ | ✓ |
 | Context pruning | ✗ | ✗ | ✗ | ✗ | ✓ |

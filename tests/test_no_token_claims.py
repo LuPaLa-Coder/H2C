@@ -18,14 +18,18 @@ CLAIM_RE = re.compile(
     r"|risparmio\s+token"
     r"|\d+\s*(?:→|->)\s*\d+\s*tokens?"
     r"|\(\s*\d{2}\s?%\s*saved\s*\)"
-    r"|~\d+\s*token\s+(?:di|of)\s+(?:linguaggio|natural)",
+    r"|~\d+\s*token\s+(?:di|of)\s+(?:linguaggio|natural)"
+    r"|(?:reduc\w*|riduzion\w*|risparm\w*|sav\w*)[^.\n]{0,40}token[^.\n]{0,40}\d{2}\s?%"
+    r"|token[^.\n]{0,40}(?:reduc\w*|riduzion\w*|risparm\w*|sav\w*)[^.\n]{0,40}\d{2}\s?%"
+    r"|riduzione\s+token\s*:\s*\d{2}"
+    r"|semantic\s+compression|compressione\s+semantica",
     re.IGNORECASE,
 )
 
 SCANNED = [
     "README.md", "SPEC.md", "CLAUDE.md", "AGENTS.md", ".windsurfrules",
     "llms-full.txt", "index.html", "pyproject.toml",
-    ".cursor/**/*", ".claude-plugin/*", ".cursor-plugin/*",
+    ".cursor/**/*", ".claude-plugin/*", ".cursor-plugin/*", ".github/**/*",
     "skills/**/*.md", "h2c_compress/*.md", "docs/**/*.md", "examples/**/*",
     "h2c/**/*.py",
 ]
@@ -49,6 +53,10 @@ def _files():
         "~61% di risparmio",
         "96% token savings",
         "Monitorare il risparmio token",
+        "H2C reduces token usage by 75-93% compared to natural language.",
+        "Riduzione token: 75-93% vs linguaggio naturale.",
+        "H2C Semantic Compression Protocol",
+        "Compressione semantica per RAG",
     ],
 )
 def test_claim_regex_catches_old_claims(text):
