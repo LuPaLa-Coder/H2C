@@ -4,6 +4,7 @@ Implements the side effect table from docs/specification/semantics.md section 2.
 """
 
 import contextlib
+from typing import Any
 
 from h2c.parser.ast import Block, IntegerValue, ListValue, StringValue
 from h2c.state.fsm import Opcode
@@ -14,7 +15,7 @@ class SideEffectApplier:
     """Applies the semantic side effects of each opcode to GlobalMemory."""
 
     @staticmethod
-    def apply(opcode: Opcode, block: Block, memory: GlobalMemory):
+    def apply(opcode: Opcode, block: Block, memory: GlobalMemory) -> None:
         """Dispatch the side effect for the given opcode."""
         handler = _SIDE_EFFECTS.get(opcode)
         if handler:
@@ -46,7 +47,7 @@ def _field_int(block: Block, name: str, default: int = 0) -> int:
     return default
 
 
-def _field_list(block: Block, name: str) -> list:
+def _field_list(block: Block, name: str) -> list[str]:
     """Extract a list field value."""
     for f in block.fields:
         if f.key == name and isinstance(f.value, ListValue):
@@ -56,26 +57,26 @@ def _field_list(block: Block, name: str) -> list:
 
 # ── Side effect handlers ─────────────────────────────────────────────────────
 
-def _effect_negotiate(block: Block, memory: GlobalMemory):
+def _effect_negotiate(block: Block, memory: GlobalMemory) -> None:
     memory.protocol_version = _field_str(block, "version")
     memory.capabilities = _field_list(block, "capabilities")
 
 
-def _effect_arch_plan(block: Block, memory: GlobalMemory):
+def _effect_arch_plan(block: Block, memory: GlobalMemory) -> None:
     plan_id = _field_str(block, "id")
     memory.context_state["layer"] = "arch"
     memory.context_state["status"] = "planned"
     memory.context_state["plan_id"] = plan_id
 
 
-def _effect_build_exec(block: Block, memory: GlobalMemory):
+def _effect_build_exec(block: Block, memory: GlobalMemory) -> None:
     target = _field_str(block, "target")
     memory.context_state["layer"] = "build"
     memory.context_state["status"] = "in_progress"
     memory.context_state["active_target"] = target
 
 
-def _effect_build_done(block: Block, memory: GlobalMemory):
+def _effect_build_done(block: Block, memory: GlobalMemory) -> None:
     memory.context_state["status"] = "done"
     # Register diff revisions
     diff = _field_list(block, "diff")
@@ -87,20 +88,20 @@ def _effect_build_done(block: Block, memory: GlobalMemory):
                     memory.revision_table[parts[0]] = int(parts[1])
 
 
-def _effect_build_fix(block: Block, memory: GlobalMemory):
+def _effect_build_fix(block: Block, memory: GlobalMemory) -> None:
     cycle_id = _field_str(block, "cycle_id")
     memory.increment_retry(cycle_id)
     target = _field_str(block, "target")
     memory.context_state["active_target"] = target
 
 
-def _effect_build_revert(block: Block, memory: GlobalMemory):
+def _effect_build_revert(block: Block, memory: GlobalMemory) -> None:
     target = _field_str(block, "target")
     to_rev = _field_int(block, "to_rev")
     memory.revision_table[target] = to_rev
 
 
-def _effect_build_nack(block: Block, memory: GlobalMemory):
+def _effect_build_nack(block: Block, memory: GlobalMemory) -> None:
     memory.add_finding({
         "type": "NACK",
         "ref_id": _field_str(block, "ref_id"),
@@ -108,7 +109,7 @@ def _effect_build_nack(block: Block, memory: GlobalMemory):
     })
 
 
-def _effect_test_pass(block: Block, memory: GlobalMemory):
+def _effect_test_pass(block: Block, memory: GlobalMemory) -> None:
     cycle_id = _field_str(block, "cycle_id")
     if cycle_id:
         memory.increment_pass(cycle_id)
@@ -117,27 +118,27 @@ def _effect_test_pass(block: Block, memory: GlobalMemory):
     memory.context_state["status"] = "passed"
 
 
-def _effect_test_fail(block: Block, memory: GlobalMemory):
+def _effect_test_fail(block: Block, memory: GlobalMemory) -> None:
     cycle_id = _field_str(block, "cycle_id")
     memory.increment_fail(cycle_id)
     memory.context_state["layer"] = "test"
     memory.context_state["status"] = "failed"
 
 
-def _effect_ctx_prune(block: Block, memory: GlobalMemory):
+def _effect_ctx_prune(block: Block, memory: GlobalMemory) -> None:
     memory.reset_prune_counter()
 
 
-def _effect_ctx_compact(block: Block, memory: GlobalMemory):
+def _effect_ctx_compact(block: Block, memory: GlobalMemory) -> None:
     memory.reset_prune_counter()
     memory.reset_compact_counter()
 
 
-def _effect_ctx_freeze(block: Block, memory: GlobalMemory):
+def _effect_ctx_freeze(block: Block, memory: GlobalMemory) -> None:
     memory.reset_all_counters()
 
 
-def _effect_state_find(block: Block, memory: GlobalMemory):
+def _effect_state_find(block: Block, memory: GlobalMemory) -> None:
     finding = {}
     for field in block.fields:
         key = field.key.lstrip("~")
@@ -146,15 +147,15 @@ def _effect_state_find(block: Block, memory: GlobalMemory):
     memory.add_finding(finding)
 
 
-def _effect_state_ack(block: Block, memory: GlobalMemory):
+def _effect_state_ack(block: Block, memory: GlobalMemory) -> None:
     pass  # ACK just confirms — no side effect beyond state transition
 
 
-def _effect_orch_end(block: Block, memory: GlobalMemory):
+def _effect_orch_end(block: Block, memory: GlobalMemory) -> None:
     memory.context_state["status"] = _field_str(block, "final")
 
 
-def _effect_skill_prompt(block: Block, memory: GlobalMemory):
+def _effect_skill_prompt(block: Block, memory: GlobalMemory) -> None:
     pass  # SKILL:PROMPT is a definition block — no runtime side effect
 
 

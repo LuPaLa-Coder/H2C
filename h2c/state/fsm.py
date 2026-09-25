@@ -62,13 +62,13 @@ class Opcode(Enum):
 # Built from semantics.md §1 transition matrix (58 entries).
 # ANY states are expanded for all applicable states.
 
-_TRANSITIONS: dict[tuple[State, str], State] = {}
+_TRANSITIONS: dict[tuple[State, str], Optional[State]] = {}
 
-def _t(state: State, block_type: str, new_state: State):
+def _t(state: State, block_type: str, new_state: Optional[State]) -> None:
     """Register a transition."""
     _TRANSITIONS[(state, block_type)] = new_state
 
-def _t_any(states: tuple[State, ...], block_type: str, new_state: State):
+def _t_any(states: tuple[State, ...], block_type: str, new_state: Optional[State]) -> None:
     """Register the same transition for multiple source states."""
     for s in states:
         _TRANSITIONS[(s, block_type)] = new_state
@@ -150,12 +150,12 @@ class StateMachine:
     def memory(self) -> GlobalMemory:
         return self._memory
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset to initial state with clean memory."""
         self._state = State.INIT
         self._memory = GlobalMemory()
 
-    def transition(self, block: Block) -> State:
+    def transition(self, block: Block) -> Optional[State]:
         """Apply a block to the state machine and return the new state.
 
         Returns None if the block type doesn't cause a state change
