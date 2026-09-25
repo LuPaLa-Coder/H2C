@@ -51,10 +51,6 @@ La catena completa è in [`todo-console.h2c`](todo-console.h2c) e passa `h2c val
 
 ### 🔍 Comparazione  ***Copilot***
 
-### 🎯 1. Equivalenza semantica
-
-✔ **Identicità semantica: 100%**
-
 ### Token
 
 H2C non è un formato di compressione: la catena porta stato esplicito e

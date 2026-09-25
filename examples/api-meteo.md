@@ -43,10 +43,10 @@ La catena completa è in [`api-meteo.h2c`](api-meteo.h2c) e passa `h2c validate`
 | id:api-meteo | “Crea un progetto per una API meteo” | API meteo |
 | fw:python3.11 | “sviluppata in Python 3.11” | Python 3.11 |
 | lib:fastapi,httpx,cachetools | “utilizzando FastAPI, httpx async e cachetools” | Librerie |
-| auth:APIKey::env(OPENWEATHER_API_KEY) | “API Key letta da OPENWEATHER_API_KEY” | API Key |
+| auth:APIKey_env_OPENWEATHER_API_KEY | “API Key letta da OPENWEATHER_API_KEY” | API Key |
 | pattern:router,service | “pattern modulare router + service” | Pattern router/service |
-| tools:[weather:{current,forecast}] | “due operazioni: current e forecast” | Tools meteo |
-| struct:[…] | “struttura dei file…” | Struttura progetto |
+| tools:[weather_current,weather_forecast] | “due operazioni: current e forecast” | Tools meteo |
+| struct:[main.py,routers/weather.py,services/weather_service.py,services/cache_service.py,models/weather.py] | “struttura dei file…” | Struttura progetto |
 | deps:OpenWeatherMap | “consuma i dati di OpenWeatherMap” | OpenWeatherMap |
 | notes:[cache_TTL_10min] | “cache TTL 10 minuti” | Cache TTL |
 | notes:[rate-limit_60req-min] | “rate limit 60 richieste/minuto” | Rate limit |
