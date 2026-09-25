@@ -1,0 +1,11 @@
+[CTX:NEGOTIATE]
+version:h2c_v1.4|capabilities:[PRUNE,COMPACT,FREEZE,NEGOTIATE,NACK]
+
+[STATE:ACK]
+protocol:h2c_v1.4
+
+[ARCH:PLAN]
+id:todo-console-pro|fw:net8.0|lib:Microsoft.EntityFrameworkCore.Sqlite,Spectre.Console,xUnit,Microsoft.EntityFrameworkCore.InMemory|auth:none|pattern:Repository,DI,CodeFirst,CleanArch|tools:[tasks_create,tasks_readAll,tasks_readByCategory,tasks_readOverdue,tasks_readPending,tasks_toggleComplete,tasks_delete,tasks_sortByDate,categories_list,categories_add]|struct:[src/TodoApp.Console/Program.cs,src/TodoApp.Console/README.md,src/TodoApp.Domain/TodoItem.cs,src/TodoApp.Domain/Category.cs,src/TodoApp.Data/TodoDbContext.cs,src/TodoApp.Repositories/ITodoRepository.cs,src/TodoApp.Repositories/TodoRepository.cs,src/TodoApp.Services/TodoService.cs,src/TodoApp.Cli/ConsoleUi.cs,src/TodoApp.Cli/TableRenderer.cs,tests/TodoApp.Tests/TodoServiceTests.cs,tests/TodoApp.Tests/TodoRepositoryTests.cs]|deps:SQLite|notes:[Spectre.Console_per_UI,DateOnly_per_date,EnsureCreated_DB,errori_rossi,warning_scadenze_gialli,completati_verdi]
+
+[ORCH:END]
+final:complete

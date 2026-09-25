@@ -30,18 +30,11 @@ Le chiamate HTTP verso OpenWeatherMap devono essere asincrone e realizzate trami
 
 L’API deve essere ben strutturata, modulare e facilmente estendibile.
 
-## h2c 
+## h2c
 
-
-[ARCH:PLAN]
-id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEATHER_API_KEY)|pattern:router,service|tools:[weather:{current,forecast}]|struct:[main.py,routers/weather.py,services/{weather_service.py,cache_service.py},models/weather.py,config.py,.env]|deps:OpenWeatherMap|notes:[cache_TTL_10min,rate-limit_60req-min,httpx_async]
-
+La catena completa è in [`api-meteo.h2c`](api-meteo.h2c) e passa `h2c validate`.
 
 ### 🔍 Comparazione dettagliata **Copilot**
-
-## Equivalenza semantica
-
-Identicità semantica: 100%
 
 ## Mappatura 1:1 tra h2c e prompt umano
 
@@ -59,12 +52,6 @@ Identicità semantica: 100%
 | notes:[rate-limit_60req-min] | “rate limit 60 richieste/minuto” | Rate limit |
 | notes:[httpx_async] | “chiamate HTTP asincrone tramite httpx” | httpx async |
 
-
-### 🔍 Comparazione  ***Copilot***
-
-### 🎯 1. Equivalenza semantica
-
-✔ **Identicità semantica: 100%**
 
 ### Token
 
