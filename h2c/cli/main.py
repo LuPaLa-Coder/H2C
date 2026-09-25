@@ -13,6 +13,9 @@ import json
 import sys
 from pathlib import Path
 
+# Coarse, inexact estimate for H2C text chars-per-token ratio (used as fallback when tiktoken unavailable)
+FALLBACK_CHARS_PER_TOKEN = 2.7
+
 
 def main():
     parser = _create_parser()
@@ -119,11 +122,17 @@ def _cmd_validate(args):
 
 
 def _cmd_transpile(args):
-    from h2c.parser import parse as parse_h2c
+    from h2c.parser import parse_with_diagnostics
     from h2c.transpiler import transpile
 
     text = Path(args.file).read_text()
-    message = parse_h2c(text)
+    parsed = parse_with_diagnostics(text)
+    message = parsed.message
+
+    has_error = _print_diagnostics(parsed.diagnostics)
+    if has_error:
+        sys.exit(1)
+
     output = transpile(message, args.target)
 
     if args.output:
@@ -174,7 +183,7 @@ def _cmd_stats(args):
         }
         print(json.dumps(output, indent=2))
     else:
-        method = "tiktoken cl100k_base" if exact else "rough estimate (install tiktoken for exact)"
+        method = "tiktoken o200k_base" if exact else "rough estimate (install tiktoken for exact)"
         print("H2C v1.4 — Token Statistics")
         print()
         print(f"  Blocks:           {len(message.blocks)}")
@@ -197,17 +206,17 @@ def _cmd_stats(args):
 def _count_tokens(text: str) -> tuple[int, bool]:
     """Return (token_count, is_exact).
 
-    Uses tiktoken cl100k_base when available (exact). The fallback is a coarse
-    chars/token heuristic and is flagged as inexact — it must never be presented
-    as a measured savings figure.
+    Uses tiktoken o200k_base (H2C reference tokenizer) when available (exact).
+    The fallback is a coarse chars/token heuristic and is flagged as inexact —
+    it must never be presented as a measured savings figure.
     """
     try:
         import tiktoken
-        enc = tiktoken.get_encoding("cl100k_base")
+        enc = tiktoken.get_encoding("o200k_base")
         return len(enc.encode(text)), True
-    except Exception:
-        # H2C wire text measured at ~2.7 chars/token on cl100k_base.
-        return max(1, round(len(text) / 2.7)), False
+    except ImportError:
+        # H2C wire text measured at ~2.7 chars/token on o200k_base (coarse, inexact estimate).
+        return max(1, round(len(text) / FALLBACK_CHARS_PER_TOKEN)), False
 
 
 def _estimate_tokens(text: str) -> int:
