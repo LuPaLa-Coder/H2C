@@ -13,12 +13,14 @@ import json
 import sys
 from pathlib import Path
 
+from h2c.parser import Diagnostic
+
 # Coarse, inexact estimate for H2C text chars-per-token ratio
 # (used as fallback when tiktoken unavailable)
 FALLBACK_CHARS_PER_TOKEN = 2.7
 
 
-def main():
+def main() -> None:
     parser = _create_parser()
     args = parser.parse_args()
 
@@ -75,7 +77,7 @@ def _create_parser() -> argparse.ArgumentParser:
 # ── Command implementations ──────────────────────────────────────────────────
 
 
-def _print_diagnostics(diagnostics) -> bool:
+def _print_diagnostics(diagnostics: list[Diagnostic]) -> bool:
     """Print parser diagnostics to stderr. Return True if any is error-level."""
     has_error = False
     for d in diagnostics:
@@ -86,7 +88,7 @@ def _print_diagnostics(diagnostics) -> bool:
     return has_error
 
 
-def _cmd_parse(args):
+def _cmd_parse(args: argparse.Namespace) -> None:
     from h2c.parser import parse_with_diagnostics
 
     text = Path(args.file).read_text()
@@ -100,7 +102,7 @@ def _cmd_parse(args):
         sys.exit(1)
 
 
-def _cmd_validate(args):
+def _cmd_validate(args: argparse.Namespace) -> None:
     from h2c.parser import parse_with_diagnostics
     from h2c.validator import Validator
 
@@ -122,7 +124,7 @@ def _cmd_validate(args):
     sys.exit(0 if (result.valid and not parse_has_error) else 1)
 
 
-def _cmd_transpile(args):
+def _cmd_transpile(args: argparse.Namespace) -> None:
     from h2c.parser import parse_with_diagnostics
     from h2c.transpiler import transpile
 
@@ -143,7 +145,7 @@ def _cmd_transpile(args):
         print(output)
 
 
-def _cmd_run(args):
+def _cmd_run(args: argparse.Namespace) -> None:
     from h2c.runtime.agent import run_chain
 
     stats = run_chain(args.file)
@@ -159,7 +161,7 @@ def _cmd_run(args):
         print(f"Findings:          {stats['findings_count']}")
 
 
-def _cmd_stats(args):
+def _cmd_stats(args: argparse.Namespace) -> None:
     from h2c.parser import parse_with_diagnostics
 
     text = Path(args.file).read_text()
@@ -167,7 +169,7 @@ def _cmd_stats(args):
     message = parsed.message
 
     # Count blocks by type
-    type_counts = {}
+    type_counts: dict[str, int] = {}
     for b in message.blocks:
         key = f"{b.type}:{b.subtype}"
         type_counts[key] = type_counts.get(key, 0) + 1
