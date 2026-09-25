@@ -64,6 +64,5 @@ class TestReverseCompiler:
         msg = rc.compile("Sviluppa un microservizio in rust con actix-web")
         # Rust should be detected as a framework
         if msg.blocks:
-            fields = {f.key: str(f.value) for f in msg.blocks[0].fields}
             # May not detect rust since it's not in the framework list
             pass  # Best-effort, should not crash

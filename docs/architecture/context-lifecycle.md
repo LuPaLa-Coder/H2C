@@ -8,7 +8,7 @@
 
 ## 1. Problem
 
-AI agent chains suffer from model context window saturation. In natural language, degradation begins after ~40 messages (referential coherence collapse). H2C solves this with a three-tier context management system.
+AI agent chains suffer from model context window saturation as conversation history grows: verbose natural-language history accumulates faster than structured history, and referential coherence degrades as unpruned context grows (not independently benchmarked). H2C addresses this at the protocol level with a three-tier context management system.
 
 ---
 
@@ -21,6 +21,11 @@ Every 5     CTX:PRUNE      Purge unnecessary messages
 Every 20    CTX:COMPACT    Compact history into summary
 ~100        CTX:FREEZE     Freeze baseline, full reset
 ```
+
+> **Status:** today these blocks are signals for the orchestrator — they tell
+> it what *could* be pruned, compacted, or frozen. Automatic history
+> compaction in the reference runtime (actually shrinking what is sent back
+> to the model) is planned for a later phase and is not implemented yet.
 
 ---
 
@@ -122,14 +127,13 @@ Msg 111+: new cycle with reset counters
 
 ---
 
-## 7. Empirical Scalability
+## 7. Scalability — Status
 
-| Configuration | Max Messages | Limiting Factor |
-|--------------|:-----------:|-----------------|
-| No context | ~40 | Window saturation |
-| PRUNE only | ~60 | History accumulation |
-| PRUNE + COMPACT | ~100 | Accumulated summaries |
-| PRUNE + COMPACT + FREEZE | ~130+ | Model (not protocol) |
-
-Data validated on Claude Sonnet 4.6 (61 msgs) and Opus 4.7 (130 msgs).
-See [docs/benchmarks/comparison.md](../benchmarks/comparison.md).
+The conformance fixture chains exercise chains up to 130 messages through
+the parser, validator, and FSM (`python3 conformance/run.py`), confirming
+the grammar and state machine hold at that length. This is not a
+cross-model or empirical scalability benchmark: no cross-model testing has
+been run, and no claim is made about a maximum message count in production
+use. See [docs/benchmarks/comparison.md](../benchmarks/comparison.md) and
+[conformance/Result.md](../../conformance/Result.md) for what has actually
+been measured.

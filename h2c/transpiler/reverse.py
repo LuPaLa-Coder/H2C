@@ -6,7 +6,7 @@ Status: RESEARCH level — best-effort pattern matching.
 """
 
 import re
-from typing import List, Optional
+from typing import Optional
 
 from h2c.parser.ast import (
     Block,
@@ -29,7 +29,7 @@ class ReverseCompiler:
 
     def compile(self, text: str) -> Message:
         """Convert NL text into H2C blocks. Returns a Message."""
-        blocks: List[Block] = []
+        blocks: list[Block] = []
 
         arch_block = self._extract_architecture(text)
         if arch_block:
@@ -44,7 +44,7 @@ class ReverseCompiler:
     def _extract_architecture(self, text: str) -> Optional[Block]:
         """Extract ARCH:PLAN from NL text."""
         text_lower = text.lower()
-        fields: List[Field] = []
+        fields: list[Field] = []
 
         # id: project name
         m = re.search(
@@ -83,7 +83,7 @@ class ReverseCompiler:
         for pat in lib_patterns:
             m = re.search(pat, text_lower)
             if m:
-                lib_names = [l.strip() for l in m.group(1).split(",")]
+                lib_names = [lib.strip() for lib in m.group(1).split(",")]
                 libs.extend(lib_names)
                 break
         if libs:

@@ -1,8 +1,8 @@
-# H2C Semantic Compression Protocol — Documentazione Completa
+# H2C — Structured Agent Handoff Protocol — Documentazione Completa
 
-**Protocollo di comunicazione AI-to-AI.** Grammatica a blocchi compressi per orchestrazione agenti, retrieval cognitivo e trasporto di ragionamento. Riduzione token: 75-93% vs linguaggio naturale.
+**Protocollo di handoff strutturato tra agenti AI: blocchi tipizzati, parsing deterministico, stato versionato.**
 
-> NON è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro. Questo H2C è un protocollo di compressione semantica per comunicazione AI-to-AI.
+> NON è HTTP/2 h2c (RFC 7540). HTTP/2 h2c è un meccanismo di upgrade in chiaro. Questo H2C è un protocollo di handoff strutturato per comunicazione AI-to-AI.
 
 ## Repository Structure
 
@@ -14,9 +14,9 @@ CONTRIBUTING.md              # Linee guida contributi
 CHANGELOG.md                 # Cronologia versioni
 Test.md                      # Auto-test per LLM
 examples/
-  api-meteo.md               # Esempio API meteo (risparmio ~65%)
-  todo-console.md            # Esempio TODO console C# (~59%)
-  prune_demo.md              # Catena PRUNE/COMPACT completa (~80%)
+  api-meteo.md               # Esempio API meteo
+  todo-console.md            # Esempio TODO console C#
+  prune_demo.md              # Catena PRUNE/COMPACT completa
 skills/
   h2c_architect.md           # Agente architetto
   h2c_builder.md             # Agente builder
@@ -24,13 +24,9 @@ skills/
   h2c_tester.md              # Agente tester
 h2c_compress/
   SKILL.md                   # Skill conversione testo → H2C
-opus4_7/
-  REPORT.md                  # Report test su Opus 4.7
-  test1-hello-world.h2c
-  test2-calculator.h2c
-  test3-clean-arch.h2c
-  test4-rag-pipeline.h2c
-  test5-stress-130msg.h2c
+conformance/
+  Result.md                  # Numeri misurati (tiktoken o200k_base)
+  benchmark.py                # Runner del benchmark deterministico
 ```
 
 ## Documentazione Completa
@@ -56,7 +52,7 @@ opus4_7/
 ### Benchmark
 
 - [docs/benchmarks/comparison.md](docs/benchmarks/comparison.md) — H2C vs NL/JSON/YAML/MCP su 6 metriche
-- [opus4_7/REPORT.md](opus4_7/REPORT.md) — Validazione su Claude Opus 4.7 (130 messaggi)
+- [conformance/Result.md](conformance/Result.md) — Numeri misurati (tiktoken o200k_base)
 
 ### Posizionamento
 
@@ -94,8 +90,8 @@ id:m1|diff:[main.py~1]|rev:1
 final:complete|est_token:15
 ```
 
-(~55 token vs ~180 NL = ~70% risparmio)
+(vedi conformance/Result.md per i numeri misurati)
 
 ## Voci Correlate (Keyword)
 
-AI-to-AI communication, semantic compression, multi-agent orchestration, cognitive IR, reasoning transport, autonomous agents, LLM runtime, semantic protocol, agent communication, compressed reasoning, protocollo compressione semantica, comunicazione LLM-to-LLM, formato wire agenti, orchestrazione multi-agente.
+AI-to-AI communication, structured agent handoff, multi-agent orchestration, cognitive IR, reasoning transport, autonomous agents, LLM runtime, deterministic protocol, agent communication, typed reasoning, protocollo handoff strutturato, comunicazione LLM-to-LLM, formato wire agenti, orchestrazione multi-agente.

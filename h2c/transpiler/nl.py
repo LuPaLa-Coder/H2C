@@ -3,7 +3,6 @@
 Implements the NL templates from docs/compiler/pipeline.md section 3.1.
 """
 
-from typing import List
 
 from h2c.parser.ast import (
     Block,
@@ -42,7 +41,7 @@ def _render_field(block: Block, name: str, default: str = "") -> str:
     return default
 
 
-def _render_list(block: Block, name: str) -> List[str]:
+def _render_list(block: Block, name: str) -> list[str]:
     for f in block.fields:
         if f.key == name and isinstance(f.value, ListValue):
             return f.value.data
@@ -53,9 +52,7 @@ def _render_all_fields(block: Block) -> str:
     parts = []
     for f in block.fields:
         v = f.value
-        if isinstance(v, StringValue):
-            parts.append(f"{f.key}: {v.data}")
-        elif isinstance(v, IntegerValue):
+        if isinstance(v, (StringValue, IntegerValue)):
             parts.append(f"{f.key}: {v.data}")
         elif isinstance(v, ListValue):
             parts.append(f"{f.key}: [{', '.join(v.data)}]")

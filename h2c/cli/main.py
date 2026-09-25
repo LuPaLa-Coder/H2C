@@ -5,7 +5,7 @@ Usage:
     h2c validate <file>    Validate against protocol rules
     h2c transpile <file>   Transpile to nl|json|yaml|mcp
     h2c run <file>         Process chain through agent runtime
-    h2c stats <file>       Show token savings statistics
+    h2c stats <file>       Show token and block statistics
 """
 
 import argparse
@@ -13,8 +13,14 @@ import json
 import sys
 from pathlib import Path
 
+from h2c.parser import Diagnostic
 
-def main():
+# Coarse, inexact estimate for H2C text chars-per-token ratio
+# (used as fallback when tiktoken unavailable)
+FALLBACK_CHARS_PER_TOKEN = 2.7
+
+
+def main() -> None:
     parser = _create_parser()
     args = parser.parse_args()
 
@@ -28,7 +34,7 @@ def main():
 def _create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="h2c",
-        description="H2C Semantic Compression Protocol — CLI",
+        description="H2C — Structured Agent Handoff Protocol — CLI",
     )
     sub = parser.add_subparsers(dest="command")
 
@@ -60,7 +66,7 @@ def _create_parser() -> argparse.ArgumentParser:
     p_run.set_defaults(func=_cmd_run)
 
     # stats
-    p_stats = sub.add_parser("stats", help="Show token savings statistics")
+    p_stats = sub.add_parser("stats", help="Show token and block statistics")
     p_stats.add_argument("file", help="Path to .h2c file")
     p_stats.add_argument("--json", action="store_true", help="Output as JSON")
     p_stats.set_defaults(func=_cmd_stats)
@@ -71,23 +77,39 @@ def _create_parser() -> argparse.ArgumentParser:
 # ── Command implementations ──────────────────────────────────────────────────
 
 
-def _cmd_parse(args):
-    from h2c.parser import parse as parse_h2c
+def _print_diagnostics(diagnostics: list[Diagnostic]) -> bool:
+    """Print parser diagnostics to stderr. Return True if any is error-level."""
+    has_error = False
+    for d in diagnostics:
+        if d.level == "error":
+            has_error = True
+        loc = f" (line {d.line})" if d.line >= 0 else ""
+        print(f"  [{d.level.upper()}] {d.code}: {d.message}{loc}", file=sys.stderr)
+    return has_error
+
+
+def _cmd_parse(args: argparse.Namespace) -> None:
+    from h2c.parser import parse_with_diagnostics
 
     text = Path(args.file).read_text()
-    message = parse_h2c(text)
+    result = parse_with_diagnostics(text)
 
     indent = None if args.compact else 2
-    output = json.dumps(message.to_json_ast(), indent=indent, ensure_ascii=False)
+    output = json.dumps(result.message.to_json_ast(), indent=indent, ensure_ascii=False)
     print(output)
 
+    if _print_diagnostics(result.diagnostics):
+        sys.exit(1)
 
-def _cmd_validate(args):
-    from h2c.parser import parse as parse_h2c
+
+def _cmd_validate(args: argparse.Namespace) -> None:
+    from h2c.parser import parse_with_diagnostics
     from h2c.validator import Validator
 
     text = Path(args.file).read_text()
-    message = parse_h2c(text)
+    parsed = parse_with_diagnostics(text)
+    message = parsed.message
+    parse_has_error = _print_diagnostics(parsed.diagnostics)
     validator = Validator()
     result = validator.validate(message)
 
@@ -99,15 +121,21 @@ def _cmd_validate(args):
             loc = f" (block {e.location['block']})" if e.location else ""
             print(f"  [{e.level.upper()}] {e.rule}: {e.message}{loc}")
 
-    sys.exit(0 if result.valid else 1)
+    sys.exit(0 if (result.valid and not parse_has_error) else 1)
 
 
-def _cmd_transpile(args):
-    from h2c.parser import parse as parse_h2c
+def _cmd_transpile(args: argparse.Namespace) -> None:
+    from h2c.parser import parse_with_diagnostics
     from h2c.transpiler import transpile
 
     text = Path(args.file).read_text()
-    message = parse_h2c(text)
+    parsed = parse_with_diagnostics(text)
+    message = parsed.message
+
+    has_error = _print_diagnostics(parsed.diagnostics)
+    if has_error:
+        sys.exit(1)
+
     output = transpile(message, args.target)
 
     if args.output:
@@ -117,7 +145,7 @@ def _cmd_transpile(args):
         print(output)
 
 
-def _cmd_run(args):
+def _cmd_run(args: argparse.Namespace) -> None:
     from h2c.runtime.agent import run_chain
 
     stats = run_chain(args.file)
@@ -133,66 +161,73 @@ def _cmd_run(args):
         print(f"Findings:          {stats['findings_count']}")
 
 
-def _cmd_stats(args):
-    from h2c.parser import parse as parse_h2c
+def _cmd_stats(args: argparse.Namespace) -> None:
+    from h2c.parser import parse_with_diagnostics
 
     text = Path(args.file).read_text()
-    message = parse_h2c(text)
+    parsed = parse_with_diagnostics(text)
+    message = parsed.message
 
     # Count blocks by type
-    type_counts = {}
+    type_counts: dict[str, int] = {}
     for b in message.blocks:
         key = f"{b.type}:{b.subtype}"
         type_counts[key] = type_counts.get(key, 0) + 1
 
-    # Estimate token counts
-    h2c_tokens = _estimate_tokens(text)
-    # Estimate NL equivalent: ~6 tokens per H2C token
-    nl_tokens = h2c_tokens * 6
-    savings = nl_tokens - h2c_tokens
-    pct = (savings / nl_tokens * 100) if nl_tokens > 0 else 0
+    tokens, exact = _count_tokens(text)
 
     if args.json:
         output = {
             "protocol": "h2c_v1.4",
             "blocks": len(message.blocks),
             "block_types": type_counts,
-            "h2c_tokens": h2c_tokens,
-            "nl_tokens_estimated": nl_tokens,
-            "tokens_saved": savings,
-            "savings_pct": round(pct, 1),
+            "h2c_tokens": tokens,
+            "token_count_exact": exact,
         }
         print(json.dumps(output, indent=2))
     else:
-        print(f"H2C v1.4 — Token Statistics")
+        method = "tiktoken o200k_base" if exact else "rough estimate (install tiktoken for exact)"
+        print("H2C v1.4 — Token Statistics")
         print()
         print(f"  Blocks:           {len(message.blocks)}")
         print(f"  Block types:      {len(type_counts)}")
         print()
-        print(f"  H2C tokens:       {h2c_tokens}")
-        print(f"  NL tokens (est):  {nl_tokens}")
-        print(f"  Tokens saved:     {savings} (~{pct:.0f}%)")
+        print(f"  H2C tokens:        {tokens}  [{method}]")
         print()
-        print(f"  Block type breakdown:")
+        print("  Note: H2C is not a compression format. Compare against a")
+        print("  natural-language baseline only with measured tokens:")
+        print("  python3 conformance/benchmark.py fixtures")
+        print()
+        print("  Block type breakdown:")
         for k, v in sorted(type_counts.items()):
             print(f"    {k:25s} {v}")
 
+    if _print_diagnostics(parsed.diagnostics):
+        sys.exit(1)
 
-def _estimate_tokens(text: str) -> int:
-    """Estimate token count. Uses tiktoken if available, else calibrated fallback.
 
-    Calibration based on benchmark data:
-      - H2C text averages ~3.7 chars/token
-      - NL text averages ~1.3 chars/token (more tokens for same chars)
-    The fallback assumes H2C-like text (compact, structured).
+def _count_tokens(text: str) -> tuple[int, bool]:
+    """Return (token_count, is_exact).
+
+    Uses tiktoken o200k_base (H2C reference tokenizer) when available (exact).
+    The fallback is a coarse chars/token heuristic and is flagged as inexact —
+    it must never be presented as a measured figure.
     """
     try:
         import tiktoken
-        enc = tiktoken.get_encoding("cl100k_base")
-        return len(enc.encode(text))
-    except (ImportError, Exception):
-        # Calibrated: H2C structured text is dense (~3.7 chars/token)
-        return max(1, int(len(text) / 3.7))
+        enc = tiktoken.get_encoding("o200k_base")
+        return len(enc.encode(text)), True
+    except Exception:
+        # Broad exception handling: tiktoken import may fail (ImportError), but also
+        # get_encoding may fail due to network issues when downloading the encoding file
+        # (OSError, RuntimeError, requests.RequestException, etc.). We fall back gracefully.
+        # H2C wire text measured at ~2.7 chars/token on o200k_base (coarse, inexact estimate).
+        return max(1, round(len(text) / FALLBACK_CHARS_PER_TOKEN)), False
+
+
+def _estimate_tokens(text: str) -> int:
+    """Back-compat shim: token count only (see :func:`_count_tokens`)."""
+    return _count_tokens(text)[0]
 
 
 if __name__ == "__main__":

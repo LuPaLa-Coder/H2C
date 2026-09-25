@@ -1,4 +1,4 @@
-# H2C v1.4 — Semantic Compression Protocol
+# H2C v1.4 — Structured Agent Handoff Protocol
 
 > H2C is a block-based grammar for AI-to-AI communication. This file provides project-level H2C instructions for Claude Code standalone mode.
 > For the full plugin experience with `/h2c:h2c` commands, install via: `/plugin install github:LuPaLa-Coder/H2C`
@@ -96,7 +96,7 @@ final:complete|est_token:<N>
 6. **Zero invention**: only include fields derivable from the input.
 7. Lists inline, max 5, no spaces: `[a,b,c]`.
 
-## Compression Example
+## Example: NL brief → H2C block
 
 Input: "Create a weather API in Python with FastAPI, use httpx, cache 10min, rate limit 60/min"
 
@@ -105,7 +105,6 @@ Output:
 [ARCH:PLAN]
 id:weather-api|fw:python3.11|lib:fastapi,httpx,cachetools|notes:[cache_TTL_10min,rate-limit_60req-min]
 ```
-Savings: 42 → 15 tokens (64%)
 
 ---
 

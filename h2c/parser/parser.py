@@ -11,11 +11,10 @@ Grammar:
     value     → INTEGER | signed_int | revision | list | STRING
 """
 
+import dataclasses
 import re
-from typing import List, Optional
+from typing import Optional
 
-from h2c.tokenizer.scanner import tokenize as _tokenize
-from h2c.tokenizer.token import Token, TokenType
 from h2c.parser.ast import (
     Block,
     Field,
@@ -28,12 +27,37 @@ from h2c.parser.ast import (
     Value,
 )
 from h2c.parser.errors import (
+    Diagnostic,
     H2CParseError,
     InvalidSubtype,
     InvalidType,
-    MalformedBlock,
     UnexpectedToken,
 )
+from h2c.tokenizer.scanner import tokenize as _tokenize
+from h2c.tokenizer.token import Token, TokenType
+
+# Tokens that terminate a field value (nothing left to read for this field).
+_VALUE_TERMINATORS = frozenset({
+    TokenType.PIPE, TokenType.NEWLINE, TokenType.EOF, TokenType.RBRACKET,
+})
+
+
+@dataclasses.dataclass(frozen=True)
+class ParseResult:
+    """Output of :func:`parse_with_diagnostics`.
+
+    ``message`` is always present (possibly with fewer blocks than the source
+    intended); ``diagnostics`` lists every problem the parser recovered from so
+    callers can surface them instead of losing data silently.
+    """
+
+    message: Message
+    diagnostics: list[Diagnostic] = dataclasses.field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        """True when no error-level diagnostic was recorded."""
+        return not any(d.level == "error" for d in self.diagnostics)
 
 _VALID_TYPES = frozenset({"ARCH", "BUILD", "TEST", "CTX", "STATE", "ORCH", "SKILL"})
 _VALID_SUBTYPES = frozenset({
@@ -54,23 +78,41 @@ class Parser:
     on unexpected tokens, skips forward to the next '[' or EOF.
     """
 
-    def __init__(self, tokens: List[Token]):
+    def __init__(self, tokens: list[Token]):
         self._tokens = tokens
         self._pos = 0
+        self.diagnostics: list[Diagnostic] = []
 
     # ── public API ───────────────────────────────────────────────────────
 
     def parse(self) -> Message:
-        """Parse all blocks until EOF. On error, skip to next block boundary."""
-        blocks: List[Block] = []
+        """Parse all blocks until EOF. On error, skip to next block boundary.
+
+        Problems the parser recovers from are appended to ``self.diagnostics``
+        rather than dropped silently.
+        """
+        blocks: list[Block] = []
         while self._pos < len(self._tokens):
-            if self._peek_type() == TokenType.EOF:
+            tok = self._peek()
+            if tok.type == TokenType.EOF:
                 break
+            if tok.type in (TokenType.NEWLINE, TokenType.TILDE):
+                self._consume()
+                continue
+            if tok.type != TokenType.LBRACKET:
+                # Free text outside any block — SPEC §1.3 forbids it.
+                self._record(
+                    "warning", "stray-text",
+                    f"text outside a block ignored: {tok.value!r}", tok,
+                )
+                self._recover()
+                continue
             try:
                 block = self._parse_block()
                 if block is not None:
                     blocks.append(block)
-            except H2CParseError:
+            except H2CParseError as exc:
+                self._record("error", "dropped-block", str(exc), self._peek())
                 self._recover()
         return Message(blocks=blocks)
 
@@ -112,9 +154,9 @@ class Parser:
 
     # ── field parsing ────────────────────────────────────────────────────
 
-    def _parse_fields(self) -> List[Field]:
+    def _parse_fields(self) -> list[Field]:
         """fields → field ('|' field)*"""
-        fields: List[Field] = []
+        fields: list[Field] = []
         # Parse first field (a block must have at least one field)
         if self._peek_type() in (
             TokenType.STRING, TokenType.TILDE, TokenType.KEY,
@@ -137,7 +179,19 @@ class Parser:
         if self._peek_type() == TokenType.NEWLINE:
             self._consume()
 
+        self._flag_duplicate_keys(fields)
         return fields
+
+    def _flag_duplicate_keys(self, fields: list[Field]) -> None:
+        """Record a diagnostic for repeated keys within one block (id:a|id:b)."""
+        seen: set[str] = set()
+        for f in fields:
+            if f.key in seen:
+                self._record(
+                    "warning", "duplicate-key",
+                    f"key {f.key!r} appears more than once in the block",
+                )
+            seen.add(f.key)
 
     def _parse_field(self) -> Field:
         """field → [TILDE] (STRING | KEY | TYPE | SUBTYPE) ':' value
@@ -160,6 +214,15 @@ class Parser:
         key = f"~{key_tok.value}" if is_ctx else key_tok.value
 
         self._expect(TokenType.COLON)
+
+        # Empty value ("id:|target:x" or a trailing "key:"): keep the field with
+        # an empty string instead of raising and dropping the whole block.
+        if self._peek_type() in _VALUE_TERMINATORS:
+            self._record(
+                "error", "empty-value",
+                f"field {key!r} has no value", key_tok,
+            )
+            return Field(key=key, value=StringValue(data=""), is_ctx=is_ctx)
 
         value = self._parse_value()
 
@@ -190,17 +253,17 @@ class Parser:
             return SignedIntValue(data=int(tok.value))
 
         # 3. Revision: STRING '~' INTEGER (3-token lookahead)
-        if tok.type == TokenType.STRING:
-            if self._peek_ahead_type(1) == TokenType.TILDE and \
-               self._peek_ahead_type(2) == TokenType.INTEGER:
-                file_tok = self._consume()          # STRING
-                self._consume()                      # TILDE
-                rev_tok = self._consume()            # INTEGER
-                return RevisionValue(
-                    file=file_tok.value,
-                    rev=int(rev_tok.value),
-                )
-            # Not a revision — fall through to string
+        if tok.type == TokenType.STRING and \
+           self._peek_ahead_type(1) == TokenType.TILDE and \
+           self._peek_ahead_type(2) == TokenType.INTEGER:
+            file_tok = self._consume()          # STRING
+            self._consume()                      # TILDE
+            rev_tok = self._consume()            # INTEGER
+            return RevisionValue(
+                file=file_tok.value,
+                rev=int(rev_tok.value),
+            )
+        # Not a revision — fall through to string
 
         # 4. LBRACKET → list
         if tok.type == TokenType.LBRACKET:
@@ -237,7 +300,7 @@ class Parser:
         self._expect(TokenType.LBRACKET)
 
         # Collect all raw tokens between [ and ]
-        raw_parts: List[str] = []
+        raw_parts: list[str] = []
         depth = 1
         while depth > 0 and self._peek_type() != TokenType.EOF:
             t = self._peek()
@@ -257,7 +320,7 @@ class Parser:
             return ListValue(data=[])
 
         elements = joined.split(",")
-        items: List[str] = []
+        items: list[str] = []
         for elem in elements:
             elem = elem.strip()
             if not elem:
@@ -329,12 +392,22 @@ class Parser:
             )
         return self._consume()
 
-    def _recover(self):
+    def _recover(self) -> None:
         """Skip tokens until next LBRACKET or EOF (per §5.2)."""
         while self._pos < len(self._tokens):
             if self._peek_type() in (TokenType.LBRACKET, TokenType.EOF):
                 return
             self._pos += 1
+
+    def _record(
+        self, level: str, code: str, message: str, tok: Optional[Token] = None
+    ) -> None:
+        """Append a recovered-from problem to the diagnostics list."""
+        line = tok.line if tok is not None else -1
+        pos = tok.pos if tok is not None else -1
+        self.diagnostics.append(
+            Diagnostic(level=level, code=code, message=message, line=line, pos=pos)
+        )
 
 
 def _value_to_string(v: Value) -> str:
@@ -352,8 +425,28 @@ def _value_to_string(v: Value) -> str:
     return str(v)
 
 
-def parse(text: str) -> Message:
-    """Convenience: tokenize + parse H2C text into a Message AST."""
-    from h2c.tokenizer.scanner import tokenize
-    tokens = tokenize(text)
-    return Parser(tokens).parse()
+def parse_with_diagnostics(text: str) -> ParseResult:
+    """Tokenize + parse H2C text, returning the AST *and* every recovered error.
+
+    Preferred entry point for tools that must not lose data silently
+    (CLI, validator, conformance runner).
+    """
+    tokens = _tokenize(text)
+    parser = Parser(tokens)
+    message = parser.parse()
+    return ParseResult(message=message, diagnostics=list(parser.diagnostics))
+
+
+def parse(text: str, *, strict: bool = False) -> Message:
+    """Convenience: tokenize + parse H2C text into a Message AST.
+
+    With ``strict=True`` any recovered problem is raised as an aggregated
+    :class:`H2CParseError` instead of being swallowed.
+    """
+    result = parse_with_diagnostics(text)
+    if strict:
+        errors = [d for d in result.diagnostics if d.level == "error"]
+        if errors:
+            joined = "; ".join(f"[{d.code}] {d.message}" for d in errors)
+            raise H2CParseError(f"parse failed with {len(errors)} error(s): {joined}")
+    return result.message

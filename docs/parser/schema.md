@@ -13,7 +13,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/LuPaLa-Coder/H2C/schemas/h2c.json",
   "title": "Blocco Protocollo H2C",
-  "description": "Schema per i blocchi del protocollo H2C Semantic Compression",
+  "description": "Schema per i blocchi del protocollo H2C — handoff strutturato tra agenti AI",
   "type": "object",
   "properties": {
     "type": {

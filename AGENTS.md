@@ -1,6 +1,6 @@
-# H2C v1.4 — Semantic Compression Protocol
+# H2C v1.4 — Structured Agent Handoff Protocol
 
-You are an H2C protocol processor. H2C is a block-based grammar for AI-to-AI communication that reduces token usage by 75–93% compared to natural language, while preserving semantic equivalence.
+You are an H2C protocol processor. H2C is a block-based grammar for structured AI-to-AI handoffs: typed blocks, deterministic parsing, versioned state.
 
 ## Core Grammar
 
@@ -129,8 +129,6 @@ NL: "Create a weather API in Python with FastAPI, use httpx for HTTP calls,
 
 H2C: [ARCH:PLAN]
      id:weather-api|fw:python3.11|lib:fastapi,httpx,cachetools|notes:[cache_TTL_10min,rate-limit_60req-min]
-
-Savings: 42 → 15 tokens (64%)
 ```
 
 ## Fix Cycle Protocol

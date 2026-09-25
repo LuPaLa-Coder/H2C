@@ -45,23 +45,15 @@ Il database deve essere inizializzato tramite EnsureCreated().
 Le date devono essere gestite tramite DateOnly.
 L’interfaccia CLI deve utilizzare Spectre.Console, con rendering colorato: errori in rosso, warning per scadenze in giallo e task completati in verde.
 
-## h2c 
+## h2c
 
-
-[ARCH:PLAN]
-id:todo-console-pro|fw:net8.0|lib:Microsoft.EntityFrameworkCore.Sqlite,Spectre.Console,xUnit,Microsoft.EntityFrameworkCore.InMemory|auth:none|pattern:Repository,DI,CodeFirst,CleanArch|tools:[tasks:{create,readAll,readByCategory,readOverdue,readPending,toggleComplete,delete,sortByDate},categories:{list,add}]|struct:[src/TodoApp.Console/{Program.cs,README.md},src/TodoApp.Domain/{TodoItem.cs,Category.cs},src/TodoApp.Data/{TodoDbContext.cs},src/TodoApp.Repositories/{ITodoRepository.cs,TodoRepository.cs},src/TodoApp.Services/{TodoService.cs},src/TodoApp.Cli/{ConsoleUi.cs,TableRenderer.cs},tests/TodoApp.Tests/{TodoServiceTests.cs,TodoRepositoryTests.cs}]|deps:SQLite|notes:[Spectre.Console_per_UI,DateOnly_per_date,EnsureCreated_DB,errori_rossi,warning_scadenze_gialli,completati_verdi]
+La catena completa è in [`todo-console.h2c`](todo-console.h2c) e passa `h2c validate`.
 
 ### 🔍 Comparazione  ***Copilot***
 
-### 🎯 1. Equivalenza semantica
+### Token
 
-✔ **Identicità semantica: 100%**
-
-### Token stimati
-
-- **Prompt umano** → ≈ 170–190 token
-- **h2c** → ≈ 70–80 token
-
-L'h2c utilizza circa il **41%** dei token rispetto al prompt umano.
-
-### 🚀 Risparmio del 59% dei token.
+H2C non è un formato di compressione: la catena porta stato esplicito e
+costa più token di questo brief in linguaggio naturale. Numeri misurati in
+[`conformance/Result.md`](../conformance/Result.md)
+(`python3 conformance/benchmark.py fixtures`).

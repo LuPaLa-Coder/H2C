@@ -84,7 +84,7 @@ class FileTransport(Transport):
 
     def __init__(self, filepath: str):
         self._filepath = filepath
-        self._output_lines: list = []
+        self._output_lines: list[str] = []
 
     def send(self, block: Block) -> None:
         self._output_lines.append(_block_to_text(block))
@@ -105,7 +105,7 @@ class FileTransport(Transport):
         except FileNotFoundError:
             return None
 
-    def flush(self):
+    def flush(self) -> None:
         """Write accumulated blocks to the file."""
         with open(self._filepath, "w") as f:
             f.write("\n\n".join(self._output_lines) + "\n")

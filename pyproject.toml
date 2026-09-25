@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "h2c"
 version = "0.1.0"
-description = "H2C Semantic Compression Protocol — Runtime, parser, validator, and agent runtime"
+description = "H2C — Structured agent handoff protocol: typed blocks, deterministic parsing, versioned state."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [{name = "Paolino Salamone"}]
@@ -29,11 +29,8 @@ Repository = "https://github.com/LuPaLa-Coder/H2C"
 h2c = "h2c.cli.main:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-cov"]
+dev = ["pytest>=8", "pytest-cov", "tiktoken"]
 yaml = ["pyyaml"]
-
-[tool.setuptools.packages.find]
-include = ["h2c*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -54,6 +51,9 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"h2c/parser/errors.py" = ["N818"]  # nomi pubblici gia' esportati, rename in F7 (1.0)
 
 [tool.hatch.build.targets.wheel]
 packages = ["h2c"]

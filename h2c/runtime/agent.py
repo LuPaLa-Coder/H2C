@@ -6,17 +6,16 @@ docs/architecture/agent-runtime.md section 1:
     Wait → Parse → Validate → Execute → Emit
 """
 
-from typing import List, Optional, Set as SetType
+from typing import Any, Optional
 
+from h2c.context.manager import ContextManager
 from h2c.parser.ast import Block, Message
 from h2c.parser.parser import parse as parse_text
-from h2c.validator.validator import Validator
-from h2c.state.fsm import StateMachine, Opcode
-from h2c.state.opcodes import SideEffectApplier
-from h2c.state.memory import GlobalMemory
-from h2c.context.manager import ContextManager
 from h2c.runtime.dispatcher import Dispatcher
-from h2c.runtime.transport import Transport, FileTransport
+from h2c.runtime.transport import FileTransport, Transport
+from h2c.state.fsm import StateMachine
+from h2c.validator.result import ValidationResult
+from h2c.validator.validator import Validator
 
 
 class Agent:
@@ -36,7 +35,7 @@ class Agent:
         self._validator = validator or Validator()
         self._transport = transport
         self._dispatcher = Dispatcher(self._fsm, self._ctx)
-        self._history: List[Block] = []
+        self._history: list[Block] = []
 
     @property
     def state_machine(self) -> StateMachine:
@@ -47,7 +46,7 @@ class Agent:
         return self._ctx
 
     @property
-    def history(self) -> List[Block]:
+    def history(self) -> list[Block]:
         return self._history
 
     def run_file(self, filepath: str) -> Message:
@@ -71,7 +70,7 @@ class Agent:
         # Validate the full chain first
         validation = self._validator.validate(message)
         # Identify blocks with structural/syntactic errors
-        invalid_indices: set = set()
+        invalid_indices: set[int] = set()
         for e in validation.errors:
             if e.level == "error" and e.location and "block" in e.location:
                 invalid_indices.add(e.location["block"])
@@ -96,7 +95,7 @@ class Agent:
 
         return message
 
-    def _manage_context(self):
+    def _manage_context(self) -> None:
         """Emit PRUNE, COMPACT, or FREEZE blocks as needed per SPEC §9.2-9.4."""
         msg_n = self._fsm.memory.msg_counter
 
@@ -157,9 +156,9 @@ class Agent:
             return f"[{last.type}:{last.subtype}]"
         return ""
 
-    def _build_nack(self, block: Block, result) -> Optional[Block]:
+    def _build_nack(self, block: Block, result: ValidationResult) -> Optional[Block]:
         """Build a BUILD:NACK block for a malformed block."""
-        from h2c.parser.ast import Field, StringValue
+        from h2c.parser.ast import Field, IntegerValue, ListValue, SignedIntValue, StringValue
 
         errors = [e.message for e in result.errors if e.level == "error"]
         if not errors:
@@ -167,8 +166,10 @@ class Agent:
 
         ref_id = "(unknown)"
         for f in block.fields:
-            if f.key == "id" and hasattr(f.value, 'data'):
-                ref_id = f.value.data
+            if f.key == "id" and isinstance(
+                f.value, (StringValue, IntegerValue, SignedIntValue, ListValue)
+            ):
+                ref_id = str(f.value.data)
                 break
 
         return Block(
@@ -181,12 +182,12 @@ class Agent:
         )
 
 
-def _collect_keep_ids(history: List[Block], prunable: List[str], max_keep: int = 5) -> List[str]:
+def _collect_keep_ids(history: list[Block], prunable: list[str], max_keep: int = 5) -> list[str]:
     """Collect ids to keep during PRUNE per SPEC §5.3 pruning rules.
 
     Must include: latest ARCH:PLAN, all open BUILD:FIX, latest COMPACT.
     """
-    keep: List[str] = []
+    keep: list[str] = []
     for block in history:
         bid = None
         for f in block.fields:
@@ -198,7 +199,7 @@ def _collect_keep_ids(history: List[Block], prunable: List[str], max_keep: int =
     return keep[:max_keep]
 
 
-def run_chain(filepath: str) -> dict:
+def run_chain(filepath: str) -> dict[str, Any]:
     """Convenience: run an .h2c file through the agent and return stats."""
     agent = Agent()
     message = agent.run_file(filepath)

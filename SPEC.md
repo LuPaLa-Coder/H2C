@@ -1,4 +1,4 @@
-# H2C Protocol - Specification v1.4
+# H2C v1.4 Specification — Structured Agent Handoff Protocol
 
 ## 1. Formal Grammar (BNF)
 

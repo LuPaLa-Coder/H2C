@@ -1,10 +1,10 @@
-from h2c.transpiler.nl import NLCodegen
+from h2c.parser.ast import Block, Message
 from h2c.transpiler.json_codegen import JSONCodegen
 from h2c.transpiler.mcp import MCPCodegen
-from h2c.transpiler.yaml_codegen import YAMLCodegen
+from h2c.transpiler.nl import NLCodegen
 from h2c.transpiler.reverse import ReverseCompiler
 from h2c.transpiler.serializer import H2CSerializer, serialize, serialize_block
-from h2c.parser.ast import Message, Block
+from h2c.transpiler.yaml_codegen import YAMLCodegen
 
 
 def transpile(message: Message, target: str = "nl") -> str:
@@ -35,6 +35,8 @@ def transpile(message: Message, target: str = "nl") -> str:
 
 
 __all__ = [
+    "Block",
+    "Message",
     "NLCodegen",
     "JSONCodegen",
     "MCPCodegen",

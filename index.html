@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H2C Semantic Compression Protocol — Comunicazione AI-to-AI tra Agenti</title>
-<meta name="description" content="Protocollo aperto per comunicazione AI-to-AI con grammatica a blocchi, compressione semantica e gestione ciclo di vita contesto. Riduzione token 75-93%.">
-<meta name="keywords" content="compressione semantica, comunicazione AI-to-AI, orchestrazione multi-agente, formato wire agenti, protocollo LLM, sistemi multi-agente, grammatica blocchi, ottimizzazione token">
-<meta property="og:title" content="H2C Semantic Compression Protocol — Comunicazione AI-to-AI">
-<meta property="og:description" content="Protocollo aperto per comunicazione AI-to-AI multi-agente. Riduzione token 75-93%. Formato wire a grammatica blocchi. Testato su 4 famiglie di modelli.">
+<title>H2C — Structured Agent Handoff Protocol — Comunicazione AI-to-AI tra Agenti</title>
+<meta name="description" content="Protocollo aperto per comunicazione AI-to-AI con grammatica a blocchi tipizzati, parsing deterministico e gestione ciclo di vita contesto.">
+<meta name="keywords" content="handoff strutturato, comunicazione AI-to-AI, orchestrazione multi-agente, formato wire agenti, protocollo LLM, sistemi multi-agente, grammatica blocchi, parsing deterministico">
+<meta property="og:title" content="H2C — Structured Agent Handoff Protocol — Comunicazione AI-to-AI">
+<meta property="og:description" content="Protocollo aperto per comunicazione AI-to-AI multi-agente. Blocchi tipizzati, parsing deterministico, stato versionato. Testato su 4 famiglie di modelli.">
 <meta property="og:url" content="https://LuPaLa-Coder.github.io/H2C">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="H2C Semantic Compression Protocol">
-<meta name="twitter:description" content="Protocollo di compressione semantica per comunicazione AI-to-AI — riduzione token 75-93%, grammatica blocchi, zero dipendenze">
+<meta name="twitter:title" content="H2C — Structured Agent Handoff Protocol">
+<meta name="twitter:description" content="Protocollo di handoff strutturato tra agenti AI — blocchi tipizzati, parsing deterministico, zero dipendenze">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
-  "name": "H2C Semantic Compression Protocol",
-  "description": "Protocollo aperto per comunicazione AI-to-AI con grammatica a blocchi, compressione semantica e gestione ciclo di vita contesto.",
+  "name": "H2C — Structured Agent Handoff Protocol",
+  "description": "Protocollo aperto per comunicazione AI-to-AI con grammatica a blocchi tipizzati, parsing deterministico e gestione ciclo di vita contesto.",
   "applicationCategory": "MultiAgentProtocol",
-  "keywords": "compressione semantica, comunicazione AI-to-AI, orchestrazione multi-agente, formato wire agenti, protocollo LLM, grammatica blocchi, agenti autonomi, protocollo agenti",
+  "keywords": "handoff strutturato, comunicazione AI-to-AI, orchestrazione multi-agente, formato wire agenti, protocollo LLM, grammatica blocchi, agenti autonomi, protocollo agenti",
   "dateCreated": "2026-05-24",
   "dateModified": "2026-05-26",
   "version": "1.2",
@@ -39,10 +39,10 @@ code { font-size: 0.9em; }
 </head>
 <body>
 
-<h1>H2C Semantic Compression Protocol</h1>
+<h1>H2C — Structured Agent Handoff Protocol</h1>
 
-<p><strong>Protocollo di compressione semantica per comunicazione AI-to-AI multi-agente.</strong><br>
-Grammatica a blocchi compressi. Riduzione token 75-93% vs linguaggio naturale.<br>
+<p><strong>Protocollo di handoff strutturato tra agenti AI per comunicazione multi-agente.</strong><br>
+Blocchi tipizzati, parsing deterministico, stato versionato.<br>
 Zero dipendenze. Specifica formale. Retrocompatibile v1.0→v1.2.</p>
 
 <p>NON è HTTP/2 h2c (RFC 7540). H2C qui è un protocollo di comunicazione AI-to-AI.</p>
@@ -77,7 +77,6 @@ Zero dipendenze. Specifica formale. Retrocompatibile v1.0→v1.2.</p>
 <h3>Benchmark</h3>
 <ul>
 <li><a href="docs/benchmarks/comparison.md">Confronto</a> — H2C vs NL/JSON/YAML/MCP</li>
-<li><a href="opus4_7/REPORT.md">Validazione Opus 4.7</a> — 130 messaggi, ~83% risparmio</li>
 </ul>
 
 <h3>Ecosistema</h3>

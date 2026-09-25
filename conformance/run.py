@@ -18,10 +18,10 @@ ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
 sys.path.insert(0, str(ROOT))
 
-from h2c.parser import parse
-from h2c.validator import Validator
-from h2c.state import StateMachine, State
-from h2c.runtime import Agent
+from h2c.parser import parse  # noqa: E402
+from h2c.runtime import Agent  # noqa: E402
+from h2c.state import StateMachine  # noqa: E402
+from h2c.validator import Validator  # noqa: E402
 
 # ── Test definitions ──────────────────────────────────────────────────────────
 
@@ -31,7 +31,9 @@ TESTS = [
         "name": "Hello World",
         "complexity": "Simple",
         "file": "test1-hello-world.h2c",
-        "description": "Basic project: CTX:NEGOTIATE handshake + ARCH:PLAN + BUILD chain + ORCH:END",
+        "description": (
+            "Basic project: CTX:NEGOTIATE handshake + ARCH:PLAN + BUILD chain + ORCH:END"
+        ),
         "checks": {
             "min_blocks": 5,
             "must_start_with": "CTX:NEGOTIATE",
@@ -44,7 +46,9 @@ TESTS = [
         "name": "Calculator CLI",
         "complexity": "Medium",
         "file": "test2-calculator.h2c",
-        "description": "Calculator with fix cycle: TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:PASS",
+        "description": (
+            "Calculator with fix cycle: TEST:FAIL → BUILD:FIX → BUILD:DONE → TEST:PASS"
+        ),
         "checks": {
             "min_blocks": 8,
             "must_start_with": "CTX:NEGOTIATE",
@@ -52,7 +56,9 @@ TESTS = [
             "must_contain": [
                 "BUILD:FIX", "TEST:FAIL", "TEST:PASS",
             ],
-            "must_have_fields": ["cycle_id", "retry_n", "fail_count", "pass_count", "base_rev", "rev"],
+            "must_have_fields": [
+                "cycle_id", "retry_n", "fail_count", "pass_count", "base_rev", "rev"
+            ],
         },
     },
     {
@@ -60,7 +66,9 @@ TESTS = [
         "name": "Clean Architecture",
         "complexity": "Advanced",
         "file": "test3-clean-arch.h2c",
-        "description": "Refactoring with context management: CTX:PRIMITIVES, CTX:UPDATE, STATE:FINDINGS",
+        "description": (
+            "Refactoring with context management: CTX:PRIMITIVES, CTX:UPDATE, STATE:FINDINGS"
+        ),
         "checks": {
             "min_blocks": 10,
             "must_start_with": "CTX:NEGOTIATE",
@@ -75,7 +83,9 @@ TESTS = [
         "name": "RAG Pipeline",
         "complexity": "Very Complex",
         "file": "test4-rag-pipeline.h2c",
-        "description": "Multi-agent RAG pipeline with multiple fix cycles, distinct cycle_id values",
+        "description": (
+            "Multi-agent RAG pipeline with multiple fix cycles, distinct cycle_id values"
+        ),
         "checks": {
             "min_blocks": 12,
             "must_start_with": "CTX:NEGOTIATE",
@@ -90,7 +100,10 @@ TESTS = [
         "name": "Stress Test",
         "complexity": "Stress",
         "file": "test5-stress-130msg.h2c",
-        "description": "60+ messages: PRUNE every 5, COMPACT every 20, FREEZE beyond 100, BUILD:NACK, DAG validation",
+        "description": (  # noqa: E501
+            "60+ messages: PRUNE every 5, COMPACT every 20, FREEZE beyond 100, "
+            "BUILD:NACK, DAG validation"
+        ),
         "checks": {
             "min_blocks": 60,
             "must_start_with": "CTX:NEGOTIATE",

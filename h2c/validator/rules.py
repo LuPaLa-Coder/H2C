@@ -4,14 +4,20 @@ Defines REQUIRED/OPTIONAL/RECOMMENDED fields for every block type
 from SPEC.md sections 3-8 and docs/specification/grammar.md section 2.
 """
 
-from typing import Dict, FrozenSet, Set
+from typing import Optional
 
 # ── Block field schemas ──────────────────────────────────────────────────────
 
 # Each entry: (required: frozenset, optional: frozenset, recommended: frozenset)
-_BLOCK_SCHEMAS: Dict[str, Dict[str, FrozenSet[str]]] = {}
+_BLOCK_SCHEMAS: dict[str, dict[str, frozenset[str]]] = {}
 
-def _s(type_: str, subtype: str, req: set = None, opt: set = None, rec: set = None):
+def _s(
+    type_: str,
+    subtype: str,
+    req: Optional[set[str]] = None,
+    opt: Optional[set[str]] = None,
+    rec: Optional[set[str]] = None,
+) -> None:
     _BLOCK_SCHEMAS[f"{type_}:{subtype}"] = {
         "required": frozenset(req or set()),
         "optional": frozenset(opt or set()),
@@ -23,11 +29,19 @@ _s("CTX", "NEGOTIATE", req={"version", "capabilities"})
 _s("CTX", "PRIMITIVES", req={"~task", "~constraint", "~goal"}, opt={"~form"})
 _s("CTX", "UPDATE", req={"~progress", "~next"}, opt={"~active_files"})
 _s("CTX", "PRUNE", req={"keep", "pruned"}, opt={"reason"})
-_s("CTX", "COMPACT", req={"summary", "keep_active", "pruned_history"}, opt={"pass_count", "fail_count"})
+_s(
+    "CTX", "COMPACT",
+    req={"summary", "keep_active", "pruned_history"},
+    opt={"pass_count", "fail_count"}
+)
 _s("CTX", "FREEZE", req={"snapshot", "baseline"})
 
 # ARCH
-_s("ARCH", "PLAN", req={"id", "fw"}, opt={"lib", "auth", "pattern", "tools", "struct", "deps", "notes"})
+_s(
+    "ARCH", "PLAN",
+    req={"id", "fw"},
+    opt={"lib", "auth", "pattern", "tools", "struct", "deps", "notes"}
+)
 
 # BUILD
 # after: accepts a single string or a list (spec says list, but test files
@@ -59,22 +73,22 @@ class BlockSchema:
     """Lookup for block field schemas."""
 
     @staticmethod
-    def get_required_fields(type_: str, subtype: str) -> FrozenSet[str]:
+    def get_required_fields(type_: str, subtype: str) -> frozenset[str]:
         entry = _BLOCK_SCHEMAS.get(f"{type_}:{subtype}", {})
         return entry.get("required", frozenset())
 
     @staticmethod
-    def get_optional_fields(type_: str, subtype: str) -> FrozenSet[str]:
+    def get_optional_fields(type_: str, subtype: str) -> frozenset[str]:
         entry = _BLOCK_SCHEMAS.get(f"{type_}:{subtype}", {})
         return entry.get("optional", frozenset())
 
     @staticmethod
-    def get_recommended_fields(type_: str, subtype: str) -> FrozenSet[str]:
+    def get_recommended_fields(type_: str, subtype: str) -> frozenset[str]:
         entry = _BLOCK_SCHEMAS.get(f"{type_}:{subtype}", {})
         return entry.get("recommended", frozenset())
 
     @staticmethod
-    def get_all_fields(type_: str, subtype: str) -> FrozenSet[str]:
+    def get_all_fields(type_: str, subtype: str) -> frozenset[str]:
         """Union of required + optional + recommended."""
         entry = _BLOCK_SCHEMAS.get(f"{type_}:{subtype}", {})
         return (
@@ -90,7 +104,7 @@ class BlockSchema:
 
 # ── Integer fields (expected type: integer) ──────────────────────────────────
 
-_INTEGER_FIELDS: Dict[str, FrozenSet[str]] = {
+_INTEGER_FIELDS: dict[str, frozenset[str]] = {
     "BUILD:DONE": frozenset({"rev"}),
     "BUILD:FIX": frozenset({"base_rev", "retry_n"}),
     "BUILD:REVERT": frozenset({"to_rev"}),
@@ -103,7 +117,7 @@ _INTEGER_FIELDS: Dict[str, FrozenSet[str]] = {
 
 # ── List fields (expected type: list) ────────────────────────────────────────
 
-_LIST_FIELDS: Dict[str, FrozenSet[str]] = {
+_LIST_FIELDS: dict[str, frozenset[str]] = {
     "CTX:NEGOTIATE": frozenset({"capabilities"}),
     "ARCH:PLAN": frozenset({"tools", "struct", "notes"}),
     # BUILD:EXEC after: is OPTIONAL and can be string or list

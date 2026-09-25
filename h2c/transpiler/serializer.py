@@ -5,13 +5,13 @@ Public API for the round-trip: parse → modify AST → serialize.
 
 from h2c.parser.ast import (
     Block,
-    Field,
     IntegerValue,
     ListValue,
     Message,
     RevisionValue,
     SignedIntValue,
     StringValue,
+    Value,
 )
 
 
@@ -38,7 +38,7 @@ class H2CSerializer:
         return header + "\n" + "|".join(field_strs)
 
 
-def _value_to_str(v) -> str:
+def _value_to_str(v: Value) -> str:
     """Convert a value node back to its H2C wire representation."""
     if isinstance(v, StringValue):
         return v.data

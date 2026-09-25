@@ -1,9 +1,9 @@
 """End-to-end integration tests for H2C runtime."""
 
 from h2c.parser import parse
-from h2c.validator import Validator
-from h2c.state import StateMachine, State, SideEffectApplier
 from h2c.runtime import Agent
+from h2c.state import State
+from h2c.validator import Validator
 
 
 class TestEndToEnd:
@@ -66,3 +66,51 @@ class TestEndToEnd:
         from h2c.cli.main import _estimate_tokens
         tokens = _estimate_tokens(hello_world_text)
         assert tokens > 0
+
+
+class TestAgentNack:
+    """Agent._build_nack is only exercised on chains with validation errors.
+
+    Every other Agent test in this suite runs fully-valid fixtures, so these
+    cover the malformed-block path explicitly.
+    """
+
+    def test_nack_uses_block_id_as_ref_id(self):
+        """A structurally invalid block with an id produces a NACK referencing it."""
+        text = (
+            "[CTX:NEGOTIATE]\n"
+            "version:h2c_v1.4|capabilities:[PRUNE]\n\n"
+            "[STATE:ACK]\n"
+            "protocol:h2c_v1.4\n\n"
+            "[TEST:FAIL]\n"
+            "id:t9|error:something_broke\n"
+        )
+        msg = parse(text)
+        agent = Agent()
+        agent.run(msg)
+
+        nacks = [b for b in agent.history if b.type == "BUILD" and b.subtype == "NACK"]
+        assert len(nacks) == 1
+        fields = {f.key: f.value.data for f in nacks[0].fields}
+        assert fields["ref_id"] == "t9"
+        assert fields["error"]
+
+    def test_nack_falls_back_to_unknown_ref_id(self):
+        """A structurally invalid block with no id yields ref_id '(unknown)'."""
+        text = (
+            "[CTX:NEGOTIATE]\n"
+            "version:h2c_v1.4|capabilities:[PRUNE]\n\n"
+            "[STATE:ACK]\n"
+            "protocol:h2c_v1.4\n\n"
+            "[TEST:FAIL]\n"
+            "error:something_broke|cycle_id:c1\n"
+        )
+        msg = parse(text)
+        agent = Agent()
+        agent.run(msg)
+
+        nacks = [b for b in agent.history if b.type == "BUILD" and b.subtype == "NACK"]
+        assert len(nacks) == 1
+        fields = {f.key: f.value.data for f in nacks[0].fields}
+        assert fields["ref_id"] == "(unknown)"
+        assert fields["error"]

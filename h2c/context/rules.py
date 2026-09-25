@@ -7,7 +7,6 @@ the PRUNE/COMPACT/FREEZE triad from SPEC.md section 5.
 
 from dataclasses import dataclass
 from enum import Enum, unique
-from typing import Dict, FrozenSet, Optional, Tuple
 
 PRUNE_INTERVAL = 5
 COMPACT_INTERVAL = 20
@@ -37,7 +36,7 @@ class PruningRule:
 
 # ── Pruning rules table (18 conditions from context-lifecycle.md §3) ─────────
 
-PRUNING_RULES: Dict[str, PruningRule] = {
+PRUNING_RULES: dict[str, PruningRule] = {
     # ARCH:PLAN — prunable only if subsequent COMPACT exists
     "ARCH:PLAN:compact": PruningRule(
         "ARCH:PLAN", PruneCondition.IF_COMPACT_EXISTS,

@@ -4,17 +4,17 @@ Implements the full context management triad from
 docs/architecture/context-lifecycle.md and SPEC.md sections 5.3-5.5.
 """
 
-from typing import List, Optional, Set
+from typing import Optional
 
-from h2c.parser.ast import Block, Field, ListValue, StringValue
-from h2c.state.memory import GlobalMemory
 from h2c.context.rules import (
-    PRUNE_INTERVAL,
     COMPACT_INTERVAL,
     FREEZE_THRESHOLD,
+    PRUNE_INTERVAL,
     PruneCondition,
     get_prune_condition,
 )
+from h2c.parser.ast import Block, Field, ListValue, StringValue
+from h2c.state.memory import GlobalMemory
 
 
 class ContextManager:
@@ -23,15 +23,15 @@ class ContextManager:
     def __init__(self, memory: Optional[GlobalMemory] = None):
         self._memory = memory or GlobalMemory()
         # Track the state needed to evaluate pruning conditions
-        self._done_emitted: Set[str] = set()        # task ids with DONE
-        self._test_outcomes: Set[str] = set()        # task ids with known outcome
-        self._closed_cycles: Set[str] = set()         # cycle_ids that were closed
-        self._open_cycles: Set[str] = set()           # cycle_ids still open
-        self._has_compact_after: Set[str] = set()     # task ids with subsequent COMPACT
+        self._done_emitted: set[str] = set()        # task ids with DONE
+        self._test_outcomes: set[str] = set()        # task ids with known outcome
+        self._closed_cycles: set[str] = set()         # cycle_ids that were closed
+        self._open_cycles: set[str] = set()           # cycle_ids still open
+        self._has_compact_after: set[str] = set()     # task ids with subsequent COMPACT
         self._compact_count: int = 0
         self._last_compact_index: int = -1
         self._has_ack: bool = False
-        self._nack_corrected: Set[str] = set()        # NACK ref_ids that were corrected
+        self._nack_corrected: set[str] = set()        # NACK ref_ids that were corrected
 
     @property
     def memory(self) -> GlobalMemory:
@@ -50,7 +50,7 @@ class ContextManager:
 
     # ── State tracking (call after processing each block) ──────────────────
 
-    def track_block(self, block: Block, block_index: int):
+    def track_block(self, block: Block, block_index: int) -> None:
         """Update tracking state after a block is processed."""
         key = f"{block.type}:{block.subtype}"
 
@@ -85,8 +85,7 @@ class ContextManager:
 
         # Track NACK correction
         if key == "BUILD:NACK":
-            ref_id = _get_field_str(block, "ref_id")
-        # If we see a subsequent block with the same ref_id, mark as corrected
+            pass  # If we see a subsequent block with the same ref_id, mark as corrected
         # (simplified: any block after NACK is a potential correction)
 
     # ── Pruning decisions ─────────────────────────────────────────────────
@@ -94,7 +93,6 @@ class ContextManager:
     def is_prunable(self, block: Block, block_index: int, total_blocks: int) -> bool:
         """Determine if a block can be pruned based on current state."""
         condition = get_prune_condition(block.type, block.subtype)
-        key = f"{block.type}:{block.subtype}"
         task_id = _get_field_str(block, "id")
         cycle_id = _get_field_str(block, "cycle_id")
 
@@ -121,12 +119,9 @@ class ContextManager:
         if condition == PruneCondition.IF_ACKED:
             return self._has_ack
 
-        if condition == PruneCondition.IF_CORRECTED:
-            return True  # Simplified
+        return condition == PruneCondition.IF_CORRECTED
 
-        return False
-
-    def get_prunable_ids(self, blocks: List[Block]) -> List[str]:
+    def get_prunable_ids(self, blocks: list[Block]) -> list[str]:
         """Return the ids (or indices) of blocks that can be pruned."""
         prunable = []
         for i, block in enumerate(blocks):
@@ -139,7 +134,7 @@ class ContextManager:
     # ── Block builders ────────────────────────────────────────────────────
 
     def build_prune_block(
-        self, keep: List[str], pruned: List[str], reason: str = ""
+        self, keep: list[str], pruned: list[str], reason: str = ""
     ) -> Block:
         """Build a CTX:PRUNE block."""
         fields = [
@@ -151,7 +146,7 @@ class ContextManager:
         return Block(type="CTX", subtype="PRUNE", fields=fields)
 
     def build_compact_block(
-        self, summary: List[str], keep_active: List[str],
+        self, summary: list[str], keep_active: list[str],
         pruned_history: str, pass_count: int = 0, fail_count: int = 0,
     ) -> Block:
         """Build a CTX:COMPACT block."""
@@ -163,7 +158,7 @@ class ContextManager:
         return Block(type="CTX", subtype="COMPACT", fields=fields)
 
     def build_freeze_block(
-        self, snapshot: List[str], baseline: int
+        self, snapshot: list[str], baseline: int
     ) -> Block:
         """Build a CTX:FREEZE block."""
         from h2c.parser.ast import IntegerValue
@@ -173,21 +168,20 @@ class ContextManager:
         ]
         return Block(type="CTX", subtype="FREEZE", fields=fields)
 
-    def reset_after_prune(self):
+    def reset_after_prune(self) -> None:
         self._memory.reset_prune_counter()
 
-    def reset_after_compact(self):
+    def reset_after_compact(self) -> None:
         self._memory.reset_prune_counter()
         self._memory.reset_compact_counter()
 
-    def reset_after_freeze(self):
+    def reset_after_freeze(self) -> None:
         self._memory.reset_all_counters()
 
 
 def _get_field_str(block: Block, name: str) -> str:
     """Extract a string field value, or ''."""
     for f in block.fields:
-        if f.key == name:
-            if isinstance(f.value, StringValue):
-                return f.value.data
+        if f.key == name and isinstance(f.value, StringValue):
+            return f.value.data
     return ""

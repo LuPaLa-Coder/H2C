@@ -30,18 +30,11 @@ Le chiamate HTTP verso OpenWeatherMap devono essere asincrone e realizzate trami
 
 L’API deve essere ben strutturata, modulare e facilmente estendibile.
 
-## h2c 
+## h2c
 
-
-[ARCH:PLAN]
-id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEATHER_API_KEY)|pattern:router,service|tools:[weather:{current,forecast}]|struct:[main.py,routers/weather.py,services/{weather_service.py,cache_service.py},models/weather.py,config.py,.env]|deps:OpenWeatherMap|notes:[cache_TTL_10min,rate-limit_60req-min,httpx_async]
-
+La catena completa è in [`api-meteo.h2c`](api-meteo.h2c) e passa `h2c validate`.
 
 ### 🔍 Comparazione dettagliata **Copilot**
-
-## Equivalenza semantica
-
-Identicità semantica: 100%
 
 ## Mappatura 1:1 tra h2c e prompt umano
 
@@ -50,27 +43,19 @@ Identicità semantica: 100%
 | id:api-meteo | “Crea un progetto per una API meteo” | API meteo |
 | fw:python3.11 | “sviluppata in Python 3.11” | Python 3.11 |
 | lib:fastapi,httpx,cachetools | “utilizzando FastAPI, httpx async e cachetools” | Librerie |
-| auth:APIKey::env(OPENWEATHER_API_KEY) | “API Key letta da OPENWEATHER_API_KEY” | API Key |
+| auth:APIKey_env_OPENWEATHER_API_KEY | “API Key letta da OPENWEATHER_API_KEY” | API Key |
 | pattern:router,service | “pattern modulare router + service” | Pattern router/service |
-| tools:[weather:{current,forecast}] | “due operazioni: current e forecast” | Tools meteo |
-| struct:[…] | “struttura dei file…” | Struttura progetto |
+| tools:[weather_current,weather_forecast] | “due operazioni: current e forecast” | Tools meteo |
+| struct:[main.py,routers/weather.py,services/weather_service.py,services/cache_service.py,models/weather.py] | “struttura dei file…” | Struttura progetto |
 | deps:OpenWeatherMap | “consuma i dati di OpenWeatherMap” | OpenWeatherMap |
 | notes:[cache_TTL_10min] | “cache TTL 10 minuti” | Cache TTL |
 | notes:[rate-limit_60req-min] | “rate limit 60 richieste/minuto” | Rate limit |
 | notes:[httpx_async] | “chiamate HTTP asincrone tramite httpx” | httpx async |
 
 
-### 🔍 Comparazione  ***Copilot***
+### Token
 
-### 🎯 1. Equivalenza semantica
-
-✔ **Identicità semantica: 100%**
-
-### Token stimati
-
-- **Prompt umano** → ≈ 160–180 token
-- **Output h2c** → ≈ 55–65 token
-
-L'h2c utilizza circa il **35%** dei token rispetto al prompt umano.
-
-### 🚀 Risparmio del 65% dei token.
+H2C non è un formato di compressione: la catena porta stato esplicito e
+costa più token di questo brief in linguaggio naturale. Numeri misurati in
+[`conformance/Result.md`](../conformance/Result.md)
+(`python3 conformance/benchmark.py fixtures`).

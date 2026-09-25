@@ -1,0 +1,11 @@
+[CTX:NEGOTIATE]
+version:h2c_v1.4|capabilities:[PRUNE,COMPACT,FREEZE,NEGOTIATE,NACK]
+
+[STATE:ACK]
+protocol:h2c_v1.4
+
+[ARCH:PLAN]
+id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey_env_OPENWEATHER_API_KEY|pattern:router,service|tools:[weather_current,weather_forecast]|struct:[main.py,routers/weather.py,services/weather_service.py,services/cache_service.py,models/weather.py]|deps:OpenWeatherMap|notes:[cache_TTL_10min,rate-limit_60req-min,httpx_async]
+
+[ORCH:END]
+final:complete

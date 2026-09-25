@@ -1,6 +1,6 @@
 ---
 name: h2c
-description: H2C v1.4 Semantic Compression Protocol per comunicazione AI-to-AI strutturata. Usa quando devi tracciare task di sviluppo (BUILD:EXEC/DONE), pianificare architetture (ARCH:PLAN), registrare risultati di test (TEST:PASS/FAIL/FIX), comprimere prompt NL in blocchi tipizzati, o avviare un handshake AI-to-AI.
+description: H2C v1.4 — Protocollo di handoff strutturato tra agenti AI. Usa quando devi tracciare task di sviluppo (BUILD:EXEC/DONE), pianificare architetture (ARCH:PLAN), registrare risultati di test (TEST:PASS/FAIL/FIX), convertire prompt NL in blocchi tipizzati, o avviare un handshake AI-to-AI.
 ---
 
 # H2C v1.4 — Claude Code Plugin
@@ -25,7 +25,7 @@ La grammatica H2C rispetta sempre:
 - Pianificare architetture con `ARCH:PLAN`
 - Registrare risultati di test con `TEST:PASS`, `TEST:FAIL`, `BUILD:FIX`
 - Comprimere prompt in linguaggio naturale in blocchi H2C compatti (`/h2c:h2c compress`)
-- Monitorare il risparmio token nella sessione (`/h2c:h2c stat`)
+- Mostrare statistiche della sessione (blocchi, token misurati) con `/h2c:h2c stat`
 - Avviare handshake AI-to-AI (`/h2c:h2c negotiate`)
 
 ## When Not to Use
@@ -53,7 +53,7 @@ Mostra un riepilogo in formato tabella:
 |---------|--------|
 | Protocollo | h2c_v1.4 |
 | Blocchi generati questa sessione | <N> |
-| Token risparmiati (stimato) | <N> (~<X>%) |
+| Token misurati | <N> |
 | Ultimo blocco | <tipo> |
 
 Stima token: se disponibile `tiktoken`, usalo con encoding `cl100k_base`. Altrimenti fallback `len/3.2`.

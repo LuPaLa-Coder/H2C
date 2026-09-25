@@ -1,7 +1,7 @@
 """Tests for H2C Transpiler modules."""
 
 from h2c.parser import parse
-from h2c.transpiler import NLCodegen, JSONCodegen, MCPCodegen, H2CSerializer
+from h2c.transpiler import H2CSerializer, JSONCodegen, MCPCodegen, NLCodegen
 
 
 class TestNLCodegen:

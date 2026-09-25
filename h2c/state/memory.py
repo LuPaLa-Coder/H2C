@@ -5,7 +5,7 @@ docs/specification/semantics.md section 6.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -17,36 +17,36 @@ class GlobalMemory:
     """
 
     protocol_version: str = ""
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
     msg_counter: int = 0
     prune_counter: int = 0
     compact_counter: int = 0
-    context_state: Dict[str, Any] = field(default_factory=lambda: {
+    context_state: dict[str, Any] = field(default_factory=lambda: {
         "layer": "",
         "status": "",
         "next": "",
         "active_files": {},
     })
-    revision_table: Dict[str, int] = field(default_factory=dict)
-    cycle_registry: Dict[str, dict] = field(default_factory=dict)
-    findings: List[dict] = field(default_factory=list)
+    revision_table: dict[str, int] = field(default_factory=dict)
+    cycle_registry: dict[str, dict[str, Any]] = field(default_factory=dict)
+    findings: list[dict[str, Any]] = field(default_factory=list)
 
-    def increment_message(self):
+    def increment_message(self) -> None:
         self.msg_counter += 1
         self.prune_counter += 1
         self.compact_counter += 1
 
-    def reset_prune_counter(self):
+    def reset_prune_counter(self) -> None:
         self.prune_counter = 0
 
-    def reset_compact_counter(self):
+    def reset_compact_counter(self) -> None:
         self.compact_counter = 0
 
-    def reset_all_counters(self):
+    def reset_all_counters(self) -> None:
         self.prune_counter = 0
         self.compact_counter = 0
 
-    def register_cycle(self, cycle_id: str):
+    def register_cycle(self, cycle_id: str) -> None:
         if cycle_id not in self.cycle_registry:
             self.cycle_registry[cycle_id] = {
                 "retry_n": 0,
@@ -55,24 +55,24 @@ class GlobalMemory:
                 "status": "open",
             }
 
-    def increment_retry(self, cycle_id: str):
+    def increment_retry(self, cycle_id: str) -> None:
         self.register_cycle(cycle_id)
         self.cycle_registry[cycle_id]["retry_n"] += 1
 
-    def increment_fail(self, cycle_id: str):
+    def increment_fail(self, cycle_id: str) -> None:
         self.register_cycle(cycle_id)
         self.cycle_registry[cycle_id]["fail_count"] += 1
 
-    def increment_pass(self, cycle_id: str):
+    def increment_pass(self, cycle_id: str) -> None:
         self.register_cycle(cycle_id)
         self.cycle_registry[cycle_id]["pass_count"] += 1
 
-    def close_cycle(self, cycle_id: str):
+    def close_cycle(self, cycle_id: str) -> None:
         if cycle_id in self.cycle_registry:
             self.cycle_registry[cycle_id]["status"] = "closed"
 
-    def update_revision(self, file: str, rev: int):
+    def update_revision(self, file: str, rev: int) -> None:
         self.revision_table[file] = rev
 
-    def add_finding(self, finding: dict):
+    def add_finding(self, finding: dict[str, Any]) -> None:
         self.findings.append(finding)

@@ -1,6 +1,6 @@
 ---
 name: h2c-compress
-description: Comprime un prompt scritto in linguaggio naturale in un blocco H2C equivalente, riducendo il numero di token in input senza perdere informazione semantica. Restituisce il blocco H2C pronto da copiare, il conteggio token prima/dopo, la percentuale di risparmio, e una verifica di equivalenza semantica. Si attiva quando l'utente chiede di comprimere un prompt, ridurre i token, o convertire NL in H2C.
+description: Converte un prompt in linguaggio naturale in un blocco H2C strutturato e validato.
 ---
 
 # H2C Compress — compressione prompt NL → H2C
@@ -44,7 +44,6 @@ Per il tipo di blocco identificato, estrai SOLO i campi effettivamente presenti 
 ### Step 3 — Emissione
 Emetti il blocco H2C nel formato canonico, seguito da:
 - Conteggio token prima/dopo (usa tiktoken `cl100k_base` se disponibile, altrimenti `len/3.2`)
-- Percentuale di risparmio
 - Verifica di equivalenza semantica (checklist rapida: tutti i requisiti del prompt originale sono coperti?)
 
 ## Regole anti-hallucination
@@ -63,7 +62,7 @@ campo1:valore1|campo2:valore2|...
 ---
 **Token prima:** <N>
 **Token dopo:** <M>
-**Risparmio:** <X>%
+**Validazione:** esito di h2c validate
 **Metodo:** tiktoken cl100k_base | stima len/3.2
 
 **Verifica equivalenza:**
@@ -84,7 +83,7 @@ id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEA
 ---
 **Token prima:** 42
 **Token dopo:** 15
-**Risparmio:** 64%
+**Validazione:** blocco valido (h2c validate)
 **Metodo:** tiktoken cl100k_base
 
 **Verifica equivalenza:**
