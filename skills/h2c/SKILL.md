@@ -25,7 +25,7 @@ La grammatica H2C rispetta sempre:
 - Pianificare architetture con `ARCH:PLAN`
 - Registrare risultati di test con `TEST:PASS`, `TEST:FAIL`, `BUILD:FIX`
 - Comprimere prompt in linguaggio naturale in blocchi H2C compatti (`/h2c:h2c compress`)
-- Monitorare il risparmio token nella sessione (`/h2c:h2c stat`)
+- Mostrare statistiche della sessione (blocchi, token misurati) con `/h2c:h2c stat`
 - Avviare handshake AI-to-AI (`/h2c:h2c negotiate`)
 
 ## When Not to Use
@@ -53,7 +53,7 @@ Mostra un riepilogo in formato tabella:
 |---------|--------|
 | Protocollo | h2c_v1.4 |
 | Blocchi generati questa sessione | <N> |
-| Token risparmiati (stimato) | <N> (~<X>%) |
+| Token misurati | <N> |
 | Ultimo blocco | <tipo> |
 
 Stima token: se disponibile `tiktoken`, usalo con encoding `cl100k_base`. Altrimenti fallback `len/3.2`.

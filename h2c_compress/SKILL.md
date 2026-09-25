@@ -1,10 +1,10 @@
 ---
 name: h2c_compress
 description: |
-  Comprime un prompt scritto in linguaggio naturale in un blocco H2C equivalente,
-  riducendo il numero di token in input senza perdere informazione semantica.
+  Converte un prompt scritto in linguaggio naturale in un blocco H2C
+  strutturato e validato, senza perdere informazione semantica.
   Restituisce: il blocco H2C pronto da copiare, il conteggio token prima/dopo,
-  la percentuale di risparmio, e una verifica di equivalenza semantica.
+  e una verifica di equivalenza semantica.
 
   Si attiva quando l'utente dice (IT) "comprimi questo prompt", "comprimi in h2c",
   "trasforma in h2c", "riduci i token di questo prompt", "h2c compress",
@@ -33,19 +33,6 @@ Questa skill richiede **instruction-following preciso su formato rigido** per:
 2. Produrre il blocco H2C nel formato canonico `[BLOCK:TYPE]` su **UNA SOLA RIGA** con `|` come separatore di campi
 3. Rispettare le regole anti-hallucination su CAMPI e su METRICHE senza inventare
 
-### 📊 Benchmark misurato su 4 modelli (2026-05-26)
-
-Test reale sullo stesso prompt complesso (`H2C-repo-redesign`, ~2000 token NL):
-
-| Tier | Modello | Header canonical | Single-line | Field semantics | Metriche oneste |
-|---|---|---|---|---|---|
-| 🟢 **Frontier** | Claude Sonnet 4.5+ / Opus 4+ | atteso ✅ | atteso ✅ | atteso ✅ | atteso ✅ |
-| 🟢 **Frontier** | GPT-5.4 (xhigh) | `H2C[v1]` ⚠️ semi | ❌ multi-line | ✅ dot-notation namespacing | ✅ |
-| 🟡 **Mid** | GPT-4.1 | `H2Cv1:` dialect ❌ | ❌ multi-line | ✅ | ✅ |
-| 🟡 **Mid** | Claude Haiku 4.5 | `H2Cv1:` dialect ❌ | ❌ multi-line | ✅ | ❌ **inventa** ("92% reduction" reali misurati 67%) |
-| 🔴 **Sotto soglia** | GPT-5 mini | `[ARCH:PLAN]` ✅ ma forma | ✅ | ❌ misuse (`lib:python`, `tools:git,gh,ci`) | ❌ inventa |
-| 🔴 **Sotto soglia** | GPT-4o mini, Gemini Flash/Nano, Llama < 70B, Mistral 7B | attesi stessi problemi | — | — | — |
-
 ### Comportamento atteso per tier
 
 🟢 **Frontier (Claude Sonnet 4.5+/Opus 4+, GPT-5 full):**
@@ -55,9 +42,9 @@ Regole A/B + metriche passano. Output interoperabile con parser H2C ufficiali.
 🟡 **Mid (GPT-4.1, Haiku 4.5):**
 Produrrai con alta probabilità un **dialect** (`H2Cv1:` multi-line con `;`). Il contenuto
 resta affidabile se rispetti le Regole A+B (anti-hallucination).
-- **Se sei Haiku 4.5: NON inventare le metriche di compressione.** Calcola davvero i
-  token con `tiktoken` (o fallback `len/3.2`) PRIMA di scrivere la %. Mai scrivere
-  frasi come "92% reduction" o "4500 words → 450 chars" senza misurare.
+- **Se sei Haiku 4.5: NON inventare le metriche di conversione.** Calcola davvero i
+  token con `tiktoken` (o fallback `len/3.2`) PRIMA di scrivere qualunque conteggio.
+  Mai dichiarare un conteggio prima/dopo (token o caratteri) senza averlo misurato.
 
 🔴 **Sotto soglia (GPT-5 mini, GPT-4o mini, Llama < 70B):**
 Rischio alto di invenzione contenuti — campi standard riempiti con dati non presenti
@@ -188,7 +175,7 @@ davvero eseguire un prompt non invoca `h2c_compress`.
       h2c_tokens = len(enc.encode(prompt_h2c))
       ```
 
-   c. **Tabella riassuntiva** con: token NL, token H2C, % risparmio, blocco
+   c. **Tabella riassuntiva** con: token NL, token H2C, Δ token, blocco
       target usato:
 
       | Metrica | Prompt NL | Prompt H2C | Δ |
@@ -203,9 +190,10 @@ davvero eseguire un prompt non invoca `h2c_compress`.
       ("Incolla questo blocco al posto del prompt originale. Qualunque LLM
       moderno capisce H2C zero-shot.").
 
-5. **Onestà sul risparmio**: spiega che la compressione riduce gli **input
-   token**, non gli output. Su singola esecuzione il risparmio totale è
-   ~5-10%; diventa significativo se il prompt viene riusato N volte.
+5. **Onestà sui costi**: spiega che la conversione riguarda solo gli **input
+   token**, non gli output, e che non c'è un rapporto fisso di risparmio —
+   il conteggio prima/dopo nella tabella è l'unico numero valido, calcolato
+   per questo prompt specifico.
 
 ## Cosa NON fare
 
@@ -280,7 +268,7 @@ nella SKILL?". Se no → sposta il contenuto in `notes:` e ometti il campo.
 
 ## Esempio (dal repo H2C, api-meteo)
 
-**Input (NL, ~175 token):**
+**Input (NL):**
 > Crea un progetto per una API meteo sviluppata in Python 3.11 utilizzando
 > FastAPI. Il progetto deve integrare le librerie FastAPI, httpx in modalità
 > asincrona e cachetools. L'autenticazione deve avvenire tramite API Key,
@@ -290,14 +278,14 @@ nella SKILL?". Se no → sposta il contenuto in `notes:` e ometti il campo.
 > come "tools" e includere due operazioni: current e forecast. […] cache in
 > memoria con TTL pari a 10 minuti e un rate limit di 60 richieste al minuto.
 
-**Output (H2C, ~60 token):**
+**Output (H2C):**
 ```
 [ARCH:PLAN]
 id:api-meteo|fw:python3.11|lib:fastapi,httpx,cachetools|auth:APIKey::env(OPENWEATHER_API_KEY)|pattern:router,service|tools:[weather:{current,forecast}]|struct:[main.py,routers/weather.py,services/{weather_service.py,cache_service.py},models/weather.py,config.py,.env]|deps:OpenWeatherMap|notes:[cache_TTL_10min,rate-limit_60req-min,httpx_async]
 ```
 
-**Risparmio: ~65% sull'input.** Equivalenza semantica: 100% (mappatura 1:1
-verificata: ogni vincolo del prompt NL ha il suo campo nel blocco H2C).
+**Equivalenza semantica: 100%** (mappatura 1:1 verificata: ogni vincolo del
+prompt NL ha il suo campo nel blocco H2C).
 
 ## Quando dichiarare "non comprimibile"
 

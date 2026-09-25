@@ -5,7 +5,7 @@ Usage:
     h2c validate <file>    Validate against protocol rules
     h2c transpile <file>   Transpile to nl|json|yaml|mcp
     h2c run <file>         Process chain through agent runtime
-    h2c stats <file>       Show token savings statistics
+    h2c stats <file>       Show token and block statistics
 """
 
 import argparse
@@ -63,7 +63,7 @@ def _create_parser() -> argparse.ArgumentParser:
     p_run.set_defaults(func=_cmd_run)
 
     # stats
-    p_stats = sub.add_parser("stats", help="Show token savings statistics")
+    p_stats = sub.add_parser("stats", help="Show token and block statistics")
     p_stats.add_argument("file", help="Path to .h2c file")
     p_stats.add_argument("--json", action="store_true", help="Output as JSON")
     p_stats.set_defaults(func=_cmd_stats)
@@ -191,9 +191,9 @@ def _cmd_stats(args):
         print()
         print(f"  H2C tokens:        {tokens}  [{method}]")
         print()
-        print("  Note: token savings depend entirely on the natural-language")
-        print("  baseline you compare against — run conformance/benchmark.py")
-        print("  with a real prompt to measure it, don't assume a fixed ratio.")
+        print("  Note: H2C is not a compression format. Compare against a")
+        print("  natural-language baseline only with measured tokens:")
+        print("  python3 conformance/benchmark.py fixtures")
         print()
         print("  Block type breakdown:")
         for k, v in sorted(type_counts.items()):
@@ -208,7 +208,7 @@ def _count_tokens(text: str) -> tuple[int, bool]:
 
     Uses tiktoken o200k_base (H2C reference tokenizer) when available (exact).
     The fallback is a coarse chars/token heuristic and is flagged as inexact —
-    it must never be presented as a measured savings figure.
+    it must never be presented as a measured figure.
     """
     try:
         import tiktoken

@@ -34,7 +34,7 @@
 | List support | [] | [] |
 | Semantic density | Medium | Very High |
 
-**Conclusion:** JSON is more verbose (+40-60% tokens) and lacks agent semantics. Useful as transpiler target for interoperability.
+**Conclusion:** JSON lacks agent semantics (FSM, cycle_id, revisions); useful as transpiler target.
 
 ---
 

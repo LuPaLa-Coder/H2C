@@ -66,11 +66,9 @@ Identicità semantica: 100%
 
 ✔ **Identicità semantica: 100%**
 
-### Token stimati
+### Token
 
-- **Prompt umano** → ≈ 160–180 token
-- **Output h2c** → ≈ 55–65 token
-
-L'h2c utilizza circa il **35%** dei token rispetto al prompt umano.
-
-### 🚀 Risparmio del 65% dei token.
+H2C non è un formato di compressione: la catena porta stato esplicito e
+costa più token di questo brief in linguaggio naturale. Numeri misurati in
+[`conformance/Result.md`](../conformance/Result.md)
+(`python3 conformance/benchmark.py fixtures`).

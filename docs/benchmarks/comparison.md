@@ -16,12 +16,7 @@
 
 ### Reference Sample
 
-Example prompt for Python/FastAPI weather API:
-- Natural language: ~170 tokens (160-180 range)
-- H2C: ~60 tokens (55-65 range)
-- Equivalent JSON: ~250 tokens (with structure)
-- Equivalent YAML: ~280 tokens (with structure)
-- MCP tool call: ~300 tokens (with protocol)
+Vedi conformance/Result.md per i numeri misurati.
 
 ---
 

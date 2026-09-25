@@ -42,7 +42,6 @@ The H2C Semantic IR is an intermediate representation that captures the meaning 
   "metrics": {
     "total_tokens": 200,
     "total_tokens_nl": 5000,
-    "token_savings_pct": 96,
     "chain_length": 15,
     "fix_cycles": 0,
     "context_operations": {
@@ -68,7 +67,6 @@ The H2C Semantic IR is an intermediate representation that captures the meaning 
 | `fields.pattern` | string | Search by architectural pattern |
 | `semantic_hash` | hash | Deduplication |
 | `embedding` | vector[float] | Semantic similarity |
-| `metrics.token_savings_pct` | float | Efficiency filter |
 | `tags` | list[string] | Categorization tags |
 
 ---

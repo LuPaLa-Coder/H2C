@@ -1,7 +1,7 @@
 {
   "name": "h2c",
   "version": "1.4.0",
-  "description": "H2C Semantic Compression Protocol — comunicazione AI-to-AI strutturata a blocchi. Comprimi prompt in H2C, orchestra agenti con BUILD/ARCH/TEST/CTX, monitora statistiche di risparmio token.",
+  "description": "H2C — Structured agent handoff protocol: typed blocks, deterministic parsing, versioned state.",
   "author": {
     "name": "Paolino Salamone",
     "url": "https://github.com/LuPaLa-Coder"

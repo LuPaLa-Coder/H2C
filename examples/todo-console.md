@@ -57,11 +57,9 @@ id:todo-console-pro|fw:net8.0|lib:Microsoft.EntityFrameworkCore.Sqlite,Spectre.C
 
 ✔ **Identicità semantica: 100%**
 
-### Token stimati
+### Token
 
-- **Prompt umano** → ≈ 170–190 token
-- **h2c** → ≈ 70–80 token
-
-L'h2c utilizza circa il **41%** dei token rispetto al prompt umano.
-
-### 🚀 Risparmio del 59% dei token.
+H2C non è un formato di compressione: la catena porta stato esplicito e
+costa più token di questo brief in linguaggio naturale. Numeri misurati in
+[`conformance/Result.md`](../conformance/Result.md)
+(`python3 conformance/benchmark.py fixtures`).

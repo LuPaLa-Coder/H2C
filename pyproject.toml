@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "h2c"
 version = "0.1.0"
-description = "H2C Semantic Compression Protocol — Runtime, parser, validator, and agent runtime"
+description = "H2C — Structured agent handoff protocol: typed blocks, deterministic parsing, versioned state."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [{name = "Paolino Salamone"}]

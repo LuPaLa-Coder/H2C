@@ -1,6 +1,6 @@
 # H2C Semantic Compression Protocol
 
-**Protocollo di comunicazione AI-to-AI.** Grammatica a blocchi compressi per orchestrazione agenti, retrieval cognitivo e trasporto di ragionamento.
+**Protocollo di handoff strutturato tra agenti AI: blocchi tipizzati, parsing deterministico, stato versionato.**
 
 ![H2C Protocol](1779633660140.png)
 
@@ -19,7 +19,7 @@ Specifica:  SPEC.md
 
 I sistemi multi-agente oggi comunicano in linguaggio naturale — verboso, ridondante, non analizzabile. Ogni piano architetturale costa 500–2000 token. Ogni ciclo build-test-fix brucia migliaia di token. Spiegazioni, cortesie, markdown e ripetizioni dominano il cablaggio.
 
-H2C sostituisce il linguaggio naturale con una grammatica a blocchi strutturata progettata per il parsing nativo da LLM. È un **protocollo di compressione semantica**: lossless a livello informativo, compatto a livello di token.
+H2C sostituisce il linguaggio naturale con una grammatica a blocchi strutturata progettata per il parsing nativo da LLM. È un **protocollo di handoff strutturato**: stato esplicito e versionato, parsing deterministico invece di interpretazione di prosa.
 
 Non è un formato di prompt. È un **wire protocol per agenti AI.**
 
@@ -29,11 +29,10 @@ Non è un formato di prompt. È un **wire protocol per agenti AI.**
 
 | Problema | Impatto | Soluzione H2C |
 |----------|---------|---------------|
-| Spreco token in catene di agenti | 5.000–50.000 token per workflow | 200–2.000 token, stessa informazione |
 | Nessun protocollo agenti analizzabile | Orchestrator leggono testo libero | Blocchi strutturati con campi tipizzati |
-| Saturazione context window | Collasso dopo ~40 messaggi NL | Triade PRUNE/COMPACT/FREEZE scala a 130+ messaggi |
 | Fragilità cross-modello | Prompt falliscono tra famiglie di modelli | Grammatica autodescrittiva, zero-shot cross-modello |
 | Nessun handoff versionato tra agenti | Gli agenti non possono riprendere conversazioni | `rev`/`base_rev`, `cycle_id`, `STATE:FINDINGS` |
+| Handoff ambigui tra agenti | Stato perso o reinterpretato | Blocchi tipizzati, validator, FSM |
 
 ---
 
@@ -148,34 +147,24 @@ id:m1|diff:[main.py~1]|rev:1
 final:complete|est_token:15
 ```
 
-Questo sostituisce ~180 token di linguaggio naturale con ~70 token (~61% di risparmio, validato su Claude Opus 4.7, DeepSeek V4 Pro).
-
----
-
 ## Esempi
 
-| Esempio | Descrizione | Risparmio |
-|---------|-------------|---------|
-| [API Meteo](examples/api-meteo.md) | Servizio meteo Python/FastAPI vs prompt NL | ~65% |
-| [TODO Console](examples/todo-console.md) | App console C# .NET 8 con SQLite vs NL | ~59% |
-| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.4 completa con gestione contesto | ~80% |
-| [Test Opus 4.7](opus4_7/REPORT.md) | 5 scenari v1.1, fino a 130 messaggi | ~78–83% |
-| [Test DeepSeek V4 Pro](deepseek-v4-pro/REPORT.md) | 5 scenari v1.4, fino a 130 messaggi | ~78–83% |
+| Esempio | Descrizione |
+|---------|-------------|
+| [API Meteo](examples/api-meteo.md) | Servizio meteo Python/FastAPI vs prompt NL |
+| [TODO Console](examples/todo-console.md) | App console C# .NET 8 con SQLite vs NL |
+| [Catena PRUNE/COMPACT](examples/prune_demo.md) | Catena v1.4 completa con gestione contesto |
 
 ---
 
-## Benchmark (Validati)
+### E i token?
 
-| Metrica | Linguaggio Naturale | H2C | Miglioramento |
-|---------|:-:|:-:|:-----------:|
-| Piano architetturale | ~800 token | ~50 token | ~94% |
-| Esito build | ~200 token | ~15 token | ~93% |
-| Ciclo 3 agenti | ~5.000 token | ~200 token | ~96% |
-| Catena stress 130 msg | ~42.000 token | ~7.140 token | ~83% |
-| Punto di rottura contesto | ~40 messaggi NL | ~130 messaggi H2C | ~3,25x |
-| Zero-shot cross-modello | Fallisce spesso | Funziona su 4 famiglie | — |
-
-Metodologia e tabelle comparative complete: [docs/benchmarks/comparison.md](docs/benchmarks/comparison.md)
+H2C non è un formato di compressione. Le catene portano stato esplicito
+(id, revisioni, `cycle_id`) e costano più token di un brief in linguaggio
+naturale: vedi i numeri misurati in [`conformance/Result.md`](conformance/Result.md)
+(`python3 conformance/benchmark.py fixtures`). Il valore è altrove: un
+orchestratore legge l'handoff con un parser deterministico invece di
+interpretare prosa.
 
 ---
 

@@ -10,7 +10,7 @@
 
 | # | Strength | Impact |
 |:-:|----------|--------|
-| S1 | **75-93% token reduction** vs natural language | Lower costs, reduced latency, extended context window |
+| S1 | **Deterministic parsing** of agent handoffs | Orchestrators stop regex-parsing prose |
 | S2 | **Formal grammar** with EBNF specification | Analyzable, validatable, implementable |
 | S3 | **Zero dependencies** — text-only | Immediate adoption, no libraries required |
 | S4 | **Cross-model validated** (Sonnet 4.6, Opus 4.7) | Not tied to a single vendor |

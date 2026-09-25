@@ -96,4 +96,3 @@ H2C defines a 4-agent model:
 | fail_count | Per cycle_id | Error tracking |
 | pass_count | Per cycle_id | Success tracking |
 | est_token | Self-report in ORCH:END | Cost estimation |
-| token_savings | Calculated vs NL | Efficiency benchmark |

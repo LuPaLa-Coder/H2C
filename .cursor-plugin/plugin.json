@@ -1,7 +1,7 @@
 {
   "name": "h2c",
   "version": "1.4.0",
-  "description": "H2C Semantic Compression Protocol v1.4 — AI-to-AI block grammar for agent orchestration, prompt compression, and token optimization. Reduces token usage by 75–93%.",
+  "description": "H2C — Structured agent handoff protocol: typed blocks, deterministic parsing, versioned state.",
   "author": {
     "name": "Paolino Salamone",
     "url": "https://github.com/LuPaLa-Coder"
