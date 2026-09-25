@@ -17,7 +17,7 @@ class ValidationError:
     message: str
     location: Optional[dict[str, int]] = None  # {"line": N, "block": M}
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
             "level": self.level,
             "rule": self.rule,
@@ -41,7 +41,7 @@ class ValidationResult:
         "warnings": 0,
     })
 
-    def add_error(self, error: ValidationError):
+    def add_error(self, error: ValidationError) -> None:
         self.errors.append(error)
         if error.level == "error":
             self.valid = False
@@ -49,7 +49,7 @@ class ValidationResult:
         else:
             self.stats["warnings"] += 1
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, Any]:
         """Emit validation result in the JSON format from pipeline.md §5.3."""
         return {
             "valid": self.valid,

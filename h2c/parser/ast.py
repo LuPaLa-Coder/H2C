@@ -6,7 +6,7 @@ and docs/specification/grammar.md section 3.
 
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from typing import Union
+from typing import Any, Union
 
 
 @unique
@@ -97,7 +97,7 @@ class Block:
 class Message:
     blocks: list[Block] = field(default_factory=list)
 
-    def to_json_ast(self) -> dict:
+    def to_json_ast(self) -> dict[str, Any]:
         """Return the JSON AST form from docs/specification/grammar.md section 5."""
         return {
             "messages": [
@@ -113,8 +113,9 @@ class Message:
         }
 
 
-def _field_to_json(f: Field) -> dict:
+def _field_to_json(f: Field) -> dict[str, Any]:
     val = f.value
+    vj: dict[str, Any]
     if isinstance(val, StringValue):
         vj = {"type": "string", "data": val.data}
     elif isinstance(val, ListValue):

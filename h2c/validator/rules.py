@@ -4,13 +4,21 @@ Defines REQUIRED/OPTIONAL/RECOMMENDED fields for every block type
 from SPEC.md sections 3-8 and docs/specification/grammar.md section 2.
 """
 
+from typing import Optional
+
 
 # ── Block field schemas ──────────────────────────────────────────────────────
 
 # Each entry: (required: frozenset, optional: frozenset, recommended: frozenset)
 _BLOCK_SCHEMAS: dict[str, dict[str, frozenset[str]]] = {}
 
-def _s(type_: str, subtype: str, req: set = None, opt: set = None, rec: set = None):
+def _s(
+    type_: str,
+    subtype: str,
+    req: Optional[set[str]] = None,
+    opt: Optional[set[str]] = None,
+    rec: Optional[set[str]] = None,
+) -> None:
     _BLOCK_SCHEMAS[f"{type_}:{subtype}"] = {
         "required": frozenset(req or set()),
         "optional": frozenset(opt or set()),

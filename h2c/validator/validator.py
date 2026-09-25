@@ -10,7 +10,7 @@ Also enforces integrity rules R1-R14 from docs/specification/semantics.md §7.
 """
 
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from h2c.parser.ast import (
     Block,
@@ -52,7 +52,7 @@ class Validator:
 
     # ── Layer 1: Syntactic ────────────────────────────────────────────────
 
-    def _validate_syntactic(self, message: Message, result: ValidationResult):
+    def _validate_syntactic(self, message: Message, result: ValidationResult) -> None:
         for i, block in enumerate(message.blocks):
             if not BlockSchema.is_valid_block(block.type, block.subtype):
                 result.add_error(ValidationError(
@@ -64,14 +64,14 @@ class Validator:
 
     # ── Layer 2: Structural ───────────────────────────────────────────────
 
-    def _validate_structural(self, message: Message, result: ValidationResult):
+    def _validate_structural(self, message: Message, result: ValidationResult) -> None:
         for i, block in enumerate(message.blocks):
             self._check_required_fields(block, i, result)
             self._check_field_types(block, i, result)
             self._check_diff_format(block, i, result)
             self._check_unknown_fields(block, i, result)
 
-    def _check_required_fields(self, block: Block, idx: int, result: ValidationResult):
+    def _check_required_fields(self, block: Block, idx: int, result: ValidationResult) -> None:
         required = BlockSchema.get_required_fields(block.type, block.subtype)
         present = {f.key for f in block.fields}
         missing = required - present
@@ -86,7 +86,7 @@ class Validator:
                 location={"block": idx},
             ))
 
-    def _check_field_types(self, block: Block, idx: int, result: ValidationResult):
+    def _check_field_types(self, block: Block, idx: int, result: ValidationResult) -> None:
         key = f"{block.type}:{block.subtype}"
         for field in block.fields:
             fname = field.key
@@ -106,18 +106,19 @@ class Validator:
                 ))
 
             # List field check
-            if is_list_field(block.type, block.subtype, fname) and not isinstance(value, ListValue):
+            is_list_fld = is_list_field(block.type, block.subtype, fname)
+            if is_list_fld and not isinstance(value, ListValue):
                 result.add_error(ValidationError(
                     level="error",
                     rule="VALIDATOR-3",
                     message=(
                         f"[{key}] field '{fname}' expected LIST, "
                         f"got {type(value).__name__}"
-                        ),
-                        location={"block": idx},
-                    ))
+                    ),
+                    location={"block": idx},
+                ))
 
-    def _check_diff_format(self, block: Block, idx: int, result: ValidationResult):
+    def _check_diff_format(self, block: Block, idx: int, result: ValidationResult) -> None:
         """Validate diff: field format per VALIDATOR-7.
 
         diff items must be: revision (file~N) or signed_int (+N, -N).
@@ -147,7 +148,7 @@ class Validator:
                     location={"block": idx},
                 ))
 
-    def _check_unknown_fields(self, block: Block, idx: int, result: ValidationResult):
+    def _check_unknown_fields(self, block: Block, idx: int, result: ValidationResult) -> None:
         """Warn about fields not in the block schema."""
         all_fields = BlockSchema.get_all_fields(block.type, block.subtype)
         if not all_fields:
@@ -170,7 +171,7 @@ class Validator:
 
     # ── Layer 3: Contextual ───────────────────────────────────────────────
 
-    def _validate_contextual(self, message: Message, result: ValidationResult):
+    def _validate_contextual(self, message: Message, result: ValidationResult) -> None:
         self._check_negotiate_first(message, result)
         self._check_ack_follows_negotiate(message, result)
         self._check_cycle_id_consistency(message, result)
@@ -185,7 +186,7 @@ class Validator:
         self._check_ctx_update_on_layer_change(message, result)
         self._check_nack_mandatory(message, result)
 
-    def _check_negotiate_first(self, message: Message, result: ValidationResult):
+    def _check_negotiate_first(self, message: Message, result: ValidationResult) -> None:
         """R1: CTX:NEGOTIATE must be the first block of any chain."""
         if not message.blocks:
             return
@@ -198,7 +199,7 @@ class Validator:
                 location={"block": 0},
             ))
 
-    def _check_ack_follows_negotiate(self, message: Message, result: ValidationResult):
+    def _check_ack_follows_negotiate(self, message: Message, result: ValidationResult) -> None:
         """R2: STATE:ACK must follow CTX:NEGOTIATE immediately."""
         for i, block in enumerate(message.blocks):
             if block.type == "CTX" and block.subtype == "NEGOTIATE":
@@ -220,13 +221,13 @@ class Validator:
                         location={"block": i + 1},
                     ))
 
-    def _check_cycle_id_consistency(self, message: Message, result: ValidationResult):
+    def _check_cycle_id_consistency(self, message: Message, result: ValidationResult) -> None:
         """R3: cycle_id opened by BUILD:FIX must close with TEST:PASS or ORCH:END.
 
         R5: fail_count resets when cycle_id changes.
         VALIDATOR-4: cycle_id consistency across chain.
         """
-        open_cycles: dict[str, dict] = {}
+        open_cycles: dict[str, dict[str, Any]] = {}
         prev_fail_counts: dict[str, int] = {}
 
         for i, block in enumerate(message.blocks):
@@ -260,7 +261,7 @@ class Validator:
                     location={"block": info["opened_at"]},
                 ))
 
-    def _check_retry_n_range(self, message: Message, result: ValidationResult):
+    def _check_retry_n_range(self, message: Message, result: ValidationResult) -> None:
         """R4 / VALIDATOR-5: retry_n in BUILD:FIX must be 1-3."""
         for i, block in enumerate(message.blocks):
             if block.type == "BUILD" and block.subtype == "FIX":
@@ -273,7 +274,7 @@ class Validator:
                         location={"block": i},
                     ))
 
-    def _check_dag_cycles(self, message: Message, result: ValidationResult):
+    def _check_dag_cycles(self, message: Message, result: ValidationResult) -> None:
         """R14 / VALIDATOR-6: DAG cycle detection via transitive closure.
 
         Build adjacency from after: fields and detect cycles using DFS.
@@ -328,7 +329,7 @@ class Validator:
                     stack.append(dep)
         return visited
 
-    def _check_unique_ids(self, message: Message, result: ValidationResult):
+    def _check_unique_ids(self, message: Message, result: ValidationResult) -> None:
         """R11 / SPEC §9.11: Every id must be unique within the chain scope.
 
         Id uniqueness is enforced for entity-defining blocks only:
@@ -357,7 +358,7 @@ class Validator:
             else:
                 seen_ids[key] = i
 
-    def _check_base_rev_match(self, message: Message, result: ValidationResult):
+    def _check_base_rev_match(self, message: Message, result: ValidationResult) -> None:
         """R12: base_rev in BUILD:FIX must match rev in BUILD:DONE for same target."""
         # Collect BUILD:DONE revisions by target
         done_revs: dict[str, int] = {}
@@ -384,7 +385,7 @@ class Validator:
                             location={"block": i},
                         ))
 
-    def _check_prune_frequency(self, message: Message, result: ValidationResult):
+    def _check_prune_frequency(self, message: Message, result: ValidationResult) -> None:
         """R6 / VALIDATOR-9: CTX:PRUNE must appear at least every 5 messages."""
         last_prune = -1
         for i, block in enumerate(message.blocks):
@@ -402,7 +403,7 @@ class Validator:
                 ))
                 last_prune = i  # Reset to avoid spam
 
-    def _check_compact_frequency(self, message: Message, result: ValidationResult):
+    def _check_compact_frequency(self, message: Message, result: ValidationResult) -> None:
         """R7 / VALIDATOR-10: CTX:COMPACT must appear ~every 20 messages."""
         last_compact = -1
         for i, block in enumerate(message.blocks):
@@ -420,7 +421,7 @@ class Validator:
                 ))
                 last_compact = i
 
-    def _check_freeze_once(self, message: Message, result: ValidationResult):
+    def _check_freeze_once(self, message: Message, result: ValidationResult) -> None:
         """R8 / VALIDATOR-11: CTX:FREEZE no more than once."""
         freeze_count = 0
         first_freeze = -1
@@ -437,7 +438,7 @@ class Validator:
                         f"(first at block {first_freeze}), max 1 allowed",
             ))
 
-    def _check_retry_n_terminal(self, message: Message, result: ValidationResult):
+    def _check_retry_n_terminal(self, message: Message, result: ValidationResult) -> None:
         """R6 / SPEC §9.6: retry_n > 3 must terminate with ORCH:END final:error."""
         for i, block in enumerate(message.blocks):
             if block.type == "BUILD" and block.subtype == "FIX":
@@ -451,7 +452,7 @@ class Validator:
                         location={"block": i},
                     ))
 
-    def _check_ctx_update_on_layer_change(self, message: Message, result: ValidationResult):
+    def _check_ctx_update_on_layer_change(self, message: Message, result: ValidationResult) -> None:
         """R4 / SPEC §9.4: CTX:UPDATE mandatory on every layer change.
 
         Tracks the current layer (arch, build, test) and warns if a layer
@@ -480,7 +481,7 @@ class Validator:
                     ))
                 last_layer = new_layer
 
-    def _check_nack_mandatory(self, message: Message, result: ValidationResult):
+    def _check_nack_mandatory(self, message: Message, result: ValidationResult) -> None:
         """R13 / SPEC §9.9: On malformed block, receiver emits BUILD:NACK.
 
         If a block has structural errors (missing REQUIRED fields, invalid
@@ -488,8 +489,8 @@ class Validator:
         Simplified: we check that every invalid block type triggers at least
         one NACK in the chain.
         """
-        malformed_indices: set = set()
-        nack_refs: set = set()
+        malformed_indices: set[int] = set()
+        nack_refs: set[str] = set()
 
         for i, block in enumerate(message.blocks):
             key = f"{block.type}:{block.subtype}"
@@ -516,7 +517,7 @@ class Validator:
 
     # ── Layer 4: Terminal ─────────────────────────────────────────────────
 
-    def _validate_terminal(self, message: Message, result: ValidationResult):
+    def _validate_terminal(self, message: Message, result: ValidationResult) -> None:
         """R10 / VALIDATOR-8: ORCH:END must be the last block."""
         for i, block in enumerate(message.blocks):
             if block.type == "ORCH" and block.subtype == "END" and i != len(message.blocks) - 1:
@@ -538,8 +539,13 @@ def _find_field(block: Block, name: str) -> Optional[Field]:
     return None
 
 
-def _field_value(block: Block, name: str):
-    """Return the raw Python value of a field, or None."""
+def _field_value(block: Block, name: str) -> Any:
+    """Return the raw Python value of a field, or None.
+
+    Return type is intentionally dynamic: callers receive whatever scalar
+    or container type the underlying field value holds (str, int, list[str]),
+    matching the schema-driven, heterogeneous nature of H2C block fields.
+    """
     ff = _find_field(block, name)
     if ff is None:
         return None
