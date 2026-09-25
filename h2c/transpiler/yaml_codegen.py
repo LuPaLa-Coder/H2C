@@ -3,7 +3,7 @@
 Implements the YAML output format from docs/compiler/pipeline.md section 3.4.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from h2c.parser.ast import (
     Block,
@@ -23,17 +23,11 @@ class YAMLCodegen:
         """Generate YAML string (simple emitter, no PyYAML dependency)."""
         return _emit_yaml({"messages": [self.generate_block(b) for b in message.blocks]})
 
-    def generate_block(self, block: Block) -> Dict[str, Any]:
+    def generate_block(self, block: Block) -> dict[str, Any]:
         fields = {}
         for f in block.fields:
             v = f.value
-            if isinstance(v, StringValue):
-                fields[f.key] = v.data
-            elif isinstance(v, IntegerValue):
-                fields[f.key] = v.data
-            elif isinstance(v, SignedIntValue):
-                fields[f.key] = v.data
-            elif isinstance(v, ListValue):
+            if isinstance(v, (StringValue, IntegerValue, SignedIntValue, ListValue)):
                 fields[f.key] = v.data
             elif isinstance(v, RevisionValue):
                 fields[f.key] = {"file": v.file, "rev": v.rev}
@@ -88,6 +82,9 @@ def _yaml_str(value) -> str:
     """Quote a string for YAML if needed."""
     s = str(value)
     # Simple heuristic: quote strings that look like they need it
-    if any(c in s for c in (":", "#", "{", "}", "[", "]", ",", "&", "*", "!", ">", "|", "'", '"', "%", "@", "`")):
+    special_chars = (
+        ":", "#", "{", "}", "[", "]", ",", "&", "*", "!", ">", "|", "'", '"', "%", "@", "`"
+    )
+    if any(c in s for c in special_chars):
         return f'"{s}"'
     return s

@@ -1,9 +1,9 @@
 """End-to-end integration tests for H2C runtime."""
 
 from h2c.parser import parse
-from h2c.validator import Validator
-from h2c.state import StateMachine, State, SideEffectApplier
 from h2c.runtime import Agent
+from h2c.state import State
+from h2c.validator import Validator
 
 
 class TestEndToEnd:

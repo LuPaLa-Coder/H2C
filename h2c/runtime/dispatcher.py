@@ -3,13 +3,12 @@
 Implements the routing table from docs/architecture/agent-runtime.md section 2.
 """
 
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
-from h2c.parser.ast import Block, Message
+from h2c.context.manager import ContextManager
+from h2c.parser.ast import Block
 from h2c.state.fsm import StateMachine
 from h2c.state.opcodes import SideEffectApplier
-from h2c.state.memory import GlobalMemory
-from h2c.context.manager import ContextManager
 
 
 class Dispatcher:
@@ -22,7 +21,7 @@ class Dispatcher:
     ):
         self._fsm = state_machine
         self._ctx = context
-        self._handlers: Dict[str, Callable] = {}
+        self._handlers: dict[str, Callable] = {}
         self._register_defaults()
 
     def dispatch(self, block: Block, block_index: int = -1) -> Optional[Block]:
@@ -32,10 +31,7 @@ class Dispatcher:
         """
         key = f"{block.type}:{block.subtype}"
         handler = self._handlers.get(key)
-        if handler:
-            result = handler(block)
-        else:
-            result = None
+        result = handler(block) if handler else None
 
         # Apply state transition and side effects
         self._fsm.transition(block)

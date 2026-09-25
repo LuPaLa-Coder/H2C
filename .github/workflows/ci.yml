@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   test:
@@ -29,6 +27,9 @@ jobs:
         run: |
           python -m pytest tests/ -v --tb=short
 
+      - name: Conformance
+        run: python conformance/run.py
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +44,7 @@ jobs:
         run: pip install ruff
 
       - name: Lint
-        run: ruff check h2c/ tests/
+        run: ruff check h2c/ tests/ conformance/
 
   type-check:
     runs-on: ubuntu-latest

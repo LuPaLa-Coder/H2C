@@ -16,7 +16,7 @@ Two context rules keep the scanner from stealing data out of field values
 """
 
 import re
-from typing import Iterator, List
+from collections.abc import Iterator
 
 from h2c.tokenizer.token import Token, TokenType
 
@@ -79,12 +79,11 @@ class Scanner:
 
             # Whitespace (skip, but count lines within it)
             if ch in (" ", "\t", "\r"):
-                if ch == "\r":
-                    if self._pos + 1 < length and self._text[self._pos + 1] == "\n":
-                        self._pos += 2
-                        self._line += 1
-                        yield self._make(TokenType.NEWLINE, "\n")
-                        continue
+                if ch == "\r" and self._pos + 1 < length and self._text[self._pos + 1] == "\n":
+                    self._pos += 2
+                    self._line += 1
+                    yield self._make(TokenType.NEWLINE, "\n")
+                    continue
                 self._pos += 1
                 continue
 
@@ -140,7 +139,7 @@ class Scanner:
 
         yield Token(TokenType.EOF, "", self._pos, self._line)
 
-    def scan_all(self) -> List[Token]:
+    def scan_all(self) -> list[Token]:
         """Return all tokens as a materialized list."""
         return list(self.scan())
 
@@ -159,6 +158,6 @@ class Scanner:
         return not (nxt.isalnum() or nxt == "_")
 
 
-def tokenize(text: str) -> List[Token]:
+def tokenize(text: str) -> list[Token]:
     """Convenience: tokenize text and return list of tokens."""
     return Scanner(text).scan_all()

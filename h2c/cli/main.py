@@ -13,7 +13,8 @@ import json
 import sys
 from pathlib import Path
 
-# Coarse, inexact estimate for H2C text chars-per-token ratio (used as fallback when tiktoken unavailable)
+# Coarse, inexact estimate for H2C text chars-per-token ratio
+# (used as fallback when tiktoken unavailable)
 FALLBACK_CHARS_PER_TOKEN = 2.7
 
 

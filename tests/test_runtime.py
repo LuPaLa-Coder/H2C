@@ -1,12 +1,11 @@
 """Tests for H2C Context Manager, State Machine, and Side Effects."""
 
-import pytest
+from h2c.context.manager import ContextManager
+from h2c.context.rules import COMPACT_INTERVAL, FREEZE_THRESHOLD
 from h2c.parser import parse
-from h2c.state.fsm import StateMachine, State, Opcode
+from h2c.state.fsm import Opcode, State, StateMachine
 from h2c.state.memory import GlobalMemory
 from h2c.state.opcodes import SideEffectApplier
-from h2c.context.manager import ContextManager
-from h2c.context.rules import PRUNE_INTERVAL, COMPACT_INTERVAL, FREEZE_THRESHOLD
 
 
 class TestStateMachine:
@@ -86,7 +85,10 @@ class TestStateMachine:
             fsm.transition(parse(text).blocks[0])
 
         # COMPACT
-        msg = parse("[CTX:COMPACT]\nsummary:[layer=build]|keep_active:[main.py]|pruned_history:msg1_to_20\n")
+        msg = parse(
+            "[CTX:COMPACT]\n"
+            "summary:[layer=build]|keep_active:[main.py]|pruned_history:msg1_to_20\n"
+        )
         fsm.transition(msg.blocks[0])
         assert fsm.current_state == State.COMPACT
 

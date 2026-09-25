@@ -4,7 +4,6 @@ Tests for h2c command-line interface, including token counting and transpile dia
 """
 
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -29,7 +28,10 @@ class TestCountTokens:
         assert isinstance(result[1], bool)
 
     def test_count_tokens_fallback_on_encoding_download_failure(self, monkeypatch):
-        """_count_tokens should fall back to inexact estimate when encoding download fails (OSError)."""
+        """_count_tokens should fall back to inexact estimate when encoding download fails.
+
+        Triggered by OSError.
+        """
         import tiktoken
 
         # Simulate encoding download failure (e.g., network error)

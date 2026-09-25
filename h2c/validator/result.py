@@ -5,7 +5,7 @@ docs/compiler/pipeline.md section 5.3.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -15,10 +15,10 @@ class ValidationError:
     level: str            # "error" | "warning"
     rule: str             # "VALIDATOR-1" | "R1" | ...
     message: str
-    location: Optional[Dict[str, int]] = None  # {"line": N, "block": M}
+    location: Optional[dict[str, int]] = None  # {"line": N, "block": M}
 
     def to_dict(self) -> dict:
-        d: Dict[str, Any] = {
+        d: dict[str, Any] = {
             "level": self.level,
             "rule": self.rule,
             "message": self.message,
@@ -33,8 +33,8 @@ class ValidationResult:
     """Aggregated validation result for a Message."""
 
     valid: bool = True
-    errors: List[ValidationError] = field(default_factory=list)
-    stats: Dict[str, int] = field(default_factory=lambda: {
+    errors: list[ValidationError] = field(default_factory=list)
+    stats: dict[str, int] = field(default_factory=lambda: {
         "total_blocks": 0,
         "valid_blocks": 0,
         "errors": 0,

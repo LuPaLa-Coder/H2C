@@ -5,7 +5,6 @@ Public API for the round-trip: parse → modify AST → serialize.
 
 from h2c.parser.ast import (
     Block,
-    Field,
     IntegerValue,
     ListValue,
     Message,

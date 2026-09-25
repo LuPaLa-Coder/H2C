@@ -5,11 +5,10 @@ and the schema from docs/parser/schema.md.
 """
 
 import json as _json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from h2c.parser.ast import (
     Block,
-    Field,
     IntegerValue,
     ListValue,
     Message,
@@ -25,13 +24,13 @@ class JSONCodegen:
     def generate(self, message: Message, indent: int = 2) -> str:
         return _json.dumps(self.generate_ast(message), indent=indent)
 
-    def generate_ast(self, message: Message) -> Dict[str, Any]:
+    def generate_ast(self, message: Message) -> dict[str, Any]:
         return {
             "protocol": "h2c_v1.4",
             "messages": [self.generate_block(b) for b in message.blocks],
         }
 
-    def generate_block(self, block: Block) -> Dict[str, Any]:
+    def generate_block(self, block: Block) -> dict[str, Any]:
         return {
             "type": block.type,
             "subtype": block.subtype,
@@ -40,11 +39,7 @@ class JSONCodegen:
 
 
 def _value_to_json(v) -> Any:
-    if isinstance(v, StringValue):
-        return v.data
-    elif isinstance(v, IntegerValue):
-        return v.data
-    elif isinstance(v, SignedIntValue):
+    if isinstance(v, (StringValue, IntegerValue, SignedIntValue)):
         return v.data
     elif isinstance(v, RevisionValue):
         return {"file": v.file, "rev": v.rev}

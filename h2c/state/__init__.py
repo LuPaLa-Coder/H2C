@@ -1,4 +1,4 @@
-from h2c.state.fsm import State, Opcode, StateMachine
+from h2c.state.fsm import Opcode, State, StateMachine
 from h2c.state.memory import GlobalMemory
 from h2c.state.opcodes import SideEffectApplier
 

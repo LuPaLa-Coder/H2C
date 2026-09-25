@@ -6,7 +6,7 @@ and docs/specification/grammar.md section 3.
 
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from typing import List, Optional, Union
+from typing import Union
 
 
 @unique
@@ -53,7 +53,7 @@ class StringValue:
 
 @dataclass(frozen=True)
 class ListValue:
-    data: List[str]
+    data: list[str]
 
 
 @dataclass(frozen=True)
@@ -89,13 +89,13 @@ class Field:
 class Block:
     type: str          # "ARCH" | "BUILD" | ...
     subtype: str       # "PLAN" | "EXEC" | ...
-    fields: List[Field] = field(default_factory=list)
+    fields: list[Field] = field(default_factory=list)
     original_text: str = ""  # raw source text for error reporting
 
 
 @dataclass(frozen=True)
 class Message:
-    blocks: List[Block] = field(default_factory=list)
+    blocks: list[Block] = field(default_factory=list)
 
     def to_json_ast(self) -> dict:
         """Return the JSON AST form from docs/specification/grammar.md section 5."""

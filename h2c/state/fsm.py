@@ -5,7 +5,7 @@ docs/specification/semantics.md section 1.
 """
 
 from enum import Enum, unique
-from typing import Dict, Optional, Tuple
+from typing import Optional
 
 from h2c.parser.ast import Block
 from h2c.state.memory import GlobalMemory
@@ -62,13 +62,13 @@ class Opcode(Enum):
 # Built from semantics.md §1 transition matrix (58 entries).
 # ANY states are expanded for all applicable states.
 
-_TRANSITIONS: Dict[Tuple[State, str], State] = {}
+_TRANSITIONS: dict[tuple[State, str], State] = {}
 
 def _t(state: State, block_type: str, new_state: State):
     """Register a transition."""
     _TRANSITIONS[(state, block_type)] = new_state
 
-def _t_any(states: Tuple[State, ...], block_type: str, new_state: State):
+def _t_any(states: tuple[State, ...], block_type: str, new_state: State):
     """Register the same transition for multiple source states."""
     for s in states:
         _TRANSITIONS[(s, block_type)] = new_state

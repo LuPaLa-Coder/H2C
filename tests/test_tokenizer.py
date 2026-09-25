@@ -1,6 +1,6 @@
 """Tests for H2C Tokenizer (Phase 1)."""
 
-from h2c.tokenizer import tokenize, TokenType, Token
+from h2c.tokenizer import TokenType, tokenize
 
 
 class TestTokenizer:
@@ -17,10 +17,9 @@ class TestTokenizer:
 
     def test_list_values(self):
         tokens = tokenize("notes:[a,b,c]")
-        types = [t.type for t in tokens]
         # The comma splits list elements are not tokenized as COMMA
         # because STRING pattern doesn't exclude comma
-        pass  # Tested in parser layer
+        assert tokens  # Ensure tokenization succeeds (tested in parser layer)
 
     def test_revision_format(self):
         tokens = tokenize("diff:[main.py~1]")

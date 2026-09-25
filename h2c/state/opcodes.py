@@ -3,6 +3,8 @@
 Implements the side effect table from docs/specification/semantics.md section 2.
 """
 
+import contextlib
+
 from h2c.parser.ast import Block, IntegerValue, ListValue, StringValue
 from h2c.state.fsm import Opcode
 from h2c.state.memory import GlobalMemory
@@ -47,9 +49,8 @@ def _field_int(block: Block, name: str, default: int = 0) -> int:
 def _field_list(block: Block, name: str) -> list:
     """Extract a list field value."""
     for f in block.fields:
-        if f.key == name:
-            if isinstance(f.value, ListValue):
-                return f.value.data
+        if f.key == name and isinstance(f.value, ListValue):
+            return f.value.data
     return []
 
 
@@ -82,10 +83,8 @@ def _effect_build_done(block: Block, memory: GlobalMemory):
         if "~" in item:
             parts = item.rsplit("~", 1)
             if len(parts) == 2:
-                try:
+                with contextlib.suppress(ValueError):
                     memory.revision_table[parts[0]] = int(parts[1])
-                except ValueError:
-                    pass
 
 
 def _effect_build_fix(block: Block, memory: GlobalMemory):
@@ -142,11 +141,7 @@ def _effect_state_find(block: Block, memory: GlobalMemory):
     finding = {}
     for field in block.fields:
         key = field.key.lstrip("~")
-        if isinstance(field.value, StringValue):
-            finding[key] = field.value.data
-        elif isinstance(field.value, IntegerValue):
-            finding[key] = field.value.data
-        elif isinstance(field.value, ListValue):
+        if isinstance(field.value, (StringValue, IntegerValue, ListValue)):
             finding[key] = field.value.data
     memory.add_finding(finding)
 

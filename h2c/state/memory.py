@@ -5,7 +5,7 @@ docs/specification/semantics.md section 6.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -17,19 +17,19 @@ class GlobalMemory:
     """
 
     protocol_version: str = ""
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
     msg_counter: int = 0
     prune_counter: int = 0
     compact_counter: int = 0
-    context_state: Dict[str, Any] = field(default_factory=lambda: {
+    context_state: dict[str, Any] = field(default_factory=lambda: {
         "layer": "",
         "status": "",
         "next": "",
         "active_files": {},
     })
-    revision_table: Dict[str, int] = field(default_factory=dict)
-    cycle_registry: Dict[str, dict] = field(default_factory=dict)
-    findings: List[dict] = field(default_factory=list)
+    revision_table: dict[str, int] = field(default_factory=dict)
+    cycle_registry: dict[str, dict] = field(default_factory=dict)
+    findings: list[dict] = field(default_factory=list)
 
     def increment_message(self):
         self.msg_counter += 1

@@ -10,7 +10,7 @@ Also enforces integrity rules R1-R14 from docs/specification/semantics.md §7.
 """
 
 import re
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional
 
 from h2c.parser.ast import (
     Block,
@@ -42,7 +42,7 @@ class Validator:
         self._validate_terminal(message, result)
 
         # Compute valid_blocks count (blocks WITHOUT errors)
-        invalid_block_indices: Set[int] = set()
+        invalid_block_indices: set[int] = set()
         for e in result.errors:
             if e.level == "error" and e.location and "block" in e.location:
                 invalid_block_indices.add(e.location["block"])
@@ -93,27 +93,26 @@ class Validator:
             value = field.value
 
             # Integer field check
-            if is_integer_field(block.type, block.subtype, fname):
-                if not isinstance(value, IntegerValue):
-                    result.add_error(ValidationError(
-                        level="error",
-                        rule="VALIDATOR-3",
-                        message=(
-                            f"[{key}] field '{fname}' expected INTEGER, "
-                            f"got {type(value).__name__}"
-                        ),
-                        location={"block": idx},
-                    ))
+            is_int_field = is_integer_field(block.type, block.subtype, fname)
+            if is_int_field and not isinstance(value, IntegerValue):
+                result.add_error(ValidationError(
+                    level="error",
+                    rule="VALIDATOR-3",
+                    message=(
+                        f"[{key}] field '{fname}' expected INTEGER, "
+                        f"got {type(value).__name__}"
+                    ),
+                    location={"block": idx},
+                ))
 
             # List field check
-            if is_list_field(block.type, block.subtype, fname):
-                if not isinstance(value, ListValue):
-                    result.add_error(ValidationError(
-                        level="error",
-                        rule="VALIDATOR-3",
-                        message=(
-                            f"[{key}] field '{fname}' expected LIST, "
-                            f"got {type(value).__name__}"
+            if is_list_field(block.type, block.subtype, fname) and not isinstance(value, ListValue):
+                result.add_error(ValidationError(
+                    level="error",
+                    rule="VALIDATOR-3",
+                    message=(
+                        f"[{key}] field '{fname}' expected LIST, "
+                        f"got {type(value).__name__}"
                         ),
                         location={"block": idx},
                     ))
@@ -227,8 +226,8 @@ class Validator:
         R5: fail_count resets when cycle_id changes.
         VALIDATOR-4: cycle_id consistency across chain.
         """
-        open_cycles: Dict[str, Dict] = {}
-        prev_fail_counts: Dict[str, int] = {}
+        open_cycles: dict[str, dict] = {}
+        prev_fail_counts: dict[str, int] = {}
 
         for i, block in enumerate(message.blocks):
             cid = _field_value(block, "cycle_id")
@@ -247,9 +246,8 @@ class Validator:
                     # cycle_id referenced before being opened by BUILD:FIX
                     pass  # Valid: TEST:FAIL can open a cycle
 
-            elif block.type == "TEST" and block.subtype == "PASS":
-                if cid in open_cycles:
-                    open_cycles[cid]["closed"] = True
+            elif block.type == "TEST" and block.subtype == "PASS" and cid in open_cycles:
+                open_cycles[cid]["closed"] = True
 
         # Check unclosed cycles
         for cid, info in open_cycles.items():
@@ -267,14 +265,13 @@ class Validator:
         for i, block in enumerate(message.blocks):
             if block.type == "BUILD" and block.subtype == "FIX":
                 retry = _field_value(block, "retry_n")
-                if retry is not None:
-                    if retry < 1 or retry > 3:
-                        result.add_error(ValidationError(
-                            level="error",
-                            rule="VALIDATOR-5",
-                            message=f"retry_n={retry} out of range [1..3]",
-                            location={"block": i},
-                        ))
+                if retry is not None and (retry < 1 or retry > 3):
+                    result.add_error(ValidationError(
+                        level="error",
+                        rule="VALIDATOR-5",
+                        message=f"retry_n={retry} out of range [1..3]",
+                        location={"block": i},
+                    ))
 
     def _check_dag_cycles(self, message: Message, result: ValidationResult):
         """R14 / VALIDATOR-6: DAG cycle detection via transitive closure.
@@ -282,7 +279,7 @@ class Validator:
         Build adjacency from after: fields and detect cycles using DFS.
         """
         # Build adjacency set: {node_id: {dependencies}}
-        adj: Dict[str, Set[str]] = {}
+        adj: dict[str, set[str]] = {}
         for block in message.blocks:
             if block.type == "BUILD" and block.subtype == "EXEC":
                 bid = _field_value(block, "id")
@@ -292,10 +289,10 @@ class Validator:
                 if after is None or not isinstance(after, list):
                     adj[bid] = set()
                 else:
-                    adj[bid] = set(str(a) for a in after)
+                    adj[bid] = {str(a) for a in after}
 
         # Compute reachability via DFS from each node
-        reachable: Dict[str, Set[str]] = {}
+        reachable: dict[str, set[str]] = {}
         for node in adj:
             reachable[node] = self._transitive_closure(node, adj)
 
@@ -319,9 +316,9 @@ class Validator:
                                     f"'{dep_str}' which transitively depends on '{bid}'",
                         ))
 
-    def _transitive_closure(self, node: str, adj: Dict[str, Set[str]]) -> Set[str]:
+    def _transitive_closure(self, node: str, adj: dict[str, set[str]]) -> set[str]:
         """DFS-based transitive closure from node."""
-        visited: Set[str] = set()
+        visited: set[str] = set()
         stack = [node]
         while stack:
             curr = stack.pop()
@@ -338,10 +335,10 @@ class Validator:
         ARCH:PLAN, BUILD:EXEC, BUILD:FIX. TEST:RUN re-runs after fixes
         and BUILD:DONE/result blocks legitimately reuse ids.
         """
-        _ENTITY_TYPES = {("ARCH", "PLAN"), ("BUILD", "EXEC"), ("BUILD", "FIX")}
-        seen_ids: Dict[Tuple[str, str, str], int] = {}
+        entity_types = {("ARCH", "PLAN"), ("BUILD", "EXEC"), ("BUILD", "FIX")}
+        seen_ids: dict[tuple[str, str, str], int] = {}
         for i, block in enumerate(message.blocks):
-            if (block.type, block.subtype) not in _ENTITY_TYPES:
+            if (block.type, block.subtype) not in entity_types:
                 continue
             bid = _field_value(block, "id")
             if bid is None:
@@ -363,7 +360,7 @@ class Validator:
     def _check_base_rev_match(self, message: Message, result: ValidationResult):
         """R12: base_rev in BUILD:FIX must match rev in BUILD:DONE for same target."""
         # Collect BUILD:DONE revisions by target
-        done_revs: Dict[str, int] = {}
+        done_revs: dict[str, int] = {}
         for block in message.blocks:
             if block.type == "BUILD" and block.subtype == "DONE":
                 bid = _field_value(block, "id")
@@ -522,15 +519,14 @@ class Validator:
     def _validate_terminal(self, message: Message, result: ValidationResult):
         """R10 / VALIDATOR-8: ORCH:END must be the last block."""
         for i, block in enumerate(message.blocks):
-            if block.type == "ORCH" and block.subtype == "END":
-                if i != len(message.blocks) - 1:
-                    result.add_error(ValidationError(
-                        level="error",
-                        rule="VALIDATOR-8",
-                        message=f"ORCH:END at block {i} is not the last block "
-                                f"({len(message.blocks)} total)",
-                        location={"block": i},
-                    ))
+            if block.type == "ORCH" and block.subtype == "END" and i != len(message.blocks) - 1:
+                result.add_error(ValidationError(
+                    level="error",
+                    rule="VALIDATOR-8",
+                    message=f"ORCH:END at block {i} is not the last block "
+                            f"({len(message.blocks)} total)",
+                    location={"block": i},
+                ))
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -548,13 +544,7 @@ def _field_value(block: Block, name: str):
     if ff is None:
         return None
     v = ff.value
-    if isinstance(v, StringValue):
-        return v.data
-    elif isinstance(v, IntegerValue):
-        return v.data
-    elif isinstance(v, SignedIntValue):
-        return v.data
-    elif isinstance(v, ListValue):
+    if isinstance(v, (StringValue, IntegerValue, SignedIntValue, ListValue)):
         return v.data
     elif isinstance(v, dict):
         return v

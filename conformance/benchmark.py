@@ -14,9 +14,10 @@ In uno step solo (prompt + analisi già fatta):
   python3 conformance/benchmark.py report --model "Claude Sonnet 5" < output_llm.txt
 """
 
+import contextlib
+import json
 import re
 import sys
-import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -64,10 +65,8 @@ def extract_nl_references() -> list[dict]:
     """Parse benchmark_prompt.md and extract each NL reference text with its scenario name."""
     text = PROMPT_FILE.read_text(encoding="utf-8")
 
-    scenarios = []
     # Pattern: "## Scenario N — Name" followed by "**Reference NL (FIXED ...):**" then ``` ... ```
     # We look for scenario headers and then the first fenced code block after "Reference NL"
-    parts = re.split(r"^## Scenario \d+.*?$", text, flags=re.MULTILINE)[1:]  # skip intro
 
     current_scenarios = re.findall(
         r"^## (Scenario \d+.*?)$", text, re.MULTILINE
@@ -99,8 +98,9 @@ def extract_nl_references() -> list[dict]:
         )
         desc = ""
         if desc_match:
-            # Everything after the first line (the title was in the split) up to Reference NL / instructions
-            # The section starts after the ## title; everything up to "Reference NL" or "Genera la catena" is the description
+            # Everything after the first line (the title was in the split) up to
+            # Reference NL / instructions. The section starts after the ## title;
+            # everything up to "Reference NL" or "Genera la catena" is the description
             desc_raw = section[: desc_match.start()].strip()
             # Remove trailing markdown formatting
             desc = re.sub(r"\*{0,2}$", "", desc_raw).strip()
@@ -157,7 +157,8 @@ def extract_h2c_chains(llm_output: str) -> list[dict]:
         flags=re.IGNORECASE | re.DOTALL,
     )
 
-    # re.split with 3 capturing groups produces: [before, num1, name1, content1, num2, name2, content2, ...]
+    # re.split with 3 capturing groups produces:
+    # [before, num1, name1, content1, num2, name2, content2, ...]
     if len(blocks) >= 4:
         for i in range(1, len(blocks), 3):
             if i + 2 < len(blocks):
@@ -263,8 +264,10 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
         Date: <YYYY-MM-DD>
         Model: <model>
 
-        | # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |
-        |---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|
+        | # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words |
+        | Wd save | H2C tok | NL tok | Tok save |
+        |---|-------------|-----------|----------|---------|-----------|----------|
+        |---------|-------------|------------|----------|
         ...
         TOTAL: H2C chars=<N> | NL chars=<N> | Avg char save=<X>% | Avg token save=<X>%
 
@@ -275,11 +278,17 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
     """
     lines = []
     lines.append("=== H2C v1.4 Deterministic Benchmark ===")
-    lines.append(f"Date: 2026-07-11")
+    lines.append("Date: 2026-07-11")
     lines.append(f"Model: {model_name}")
     lines.append("")
-    lines.append("| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |")
-    lines.append("|---|-------------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|")
+    lines.append(  # noqa: E501
+        "| # | Scenario    | H2C chars | NL chars | Ch save | H2C words | NL words | "
+        "Wd save | H2C tok | NL tok | Tok save |"
+    )
+    lines.append(  # noqa: E501
+        "|---|-------------|-----------|----------|---------|-----------|----------|"
+        "---------|-------------|------------|----------|"
+    )
 
     total_h2c_chars = 0
     total_nl_chars = 0
@@ -319,8 +328,12 @@ def generate_report(metrics: list[dict], model_name: str = "") -> str:
         )
 
     # TOTAL line
-    avg_char_save = round((1 - total_h2c_chars / total_nl_chars) * 100, 1) if total_nl_chars else 0.0
-    avg_tok_save = round((1 - total_h2c_tok / total_nl_tok) * 100, 1) if total_nl_tok else 0.0
+    avg_char_save = (  # noqa: E501
+        round((1 - total_h2c_chars / total_nl_chars) * 100, 1) if total_nl_chars else 0.0
+    )
+    avg_tok_save = (  # noqa: E501
+        round((1 - total_h2c_tok / total_nl_tok) * 100, 1) if total_nl_tok else 0.0
+    )
 
     lines.append("")
     lines.append(
@@ -389,7 +402,10 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         "# H2C v1.4 — Benchmark Results",
         "",
         "Benchmark eseguito con `conformance/benchmark.py` (deterministico).",
-        "Metodo: token reali con tiktoken o200k_base. Delta positivo = H2C costa più token dell'NL.",
+        (  # noqa: E501
+            "Metodo: token reali con tiktoken o200k_base. "
+            "Delta positivo = H2C costa più token dell'NL."
+        ),
         "",
         "**Le metriche NL sono PRE-COMPUTATE e IDENTICHE per tutti i modelli.**",
         "Il confronto è valido perché solo le catene H2C provengono dal LLM.",
@@ -401,8 +417,14 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         metrics = model_data.get("metrics", [])
         lines.append(f"## {model_name}")
         lines.append("")
-        lines.append("| Scenario | H2C chars | NL chars | Ch save | H2C words | NL words | Wd save | H2C tok | NL tok | Tok save |")
-        lines.append("|----------|-----------|----------|---------|-----------|----------|---------|-------------|------------|----------|")
+        lines.append(  # noqa: E501
+            "| Scenario | H2C chars | NL chars | Ch save | H2C words | NL words | "
+            "Wd save | H2C tok | NL tok | Tok save |"
+        )
+        lines.append(  # noqa: E501
+            "|----------|-----------|----------|---------|-----------|----------|"
+            "---------|-------------|------------|----------|"
+        )
 
         total_h2c_ch = 0
         total_nl_ch = 0
@@ -427,10 +449,11 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
             total_h2c_tok += h2c["tokens"]
             total_nl_tok += nl["tokens"]
 
-            lines.append(
+            lines.append(  # noqa: E501
                 f"| {sname} | {h2c['chars']} | {nl['chars']} | "
                 f"{f'{ch_save}%':<7} | {h2c['words']} | {nl['words']} | "
-                f"{f'{wd_save}%':<7} | {h2c['tokens']:.1f} | {nl['tokens']:.1f} | {f'{tok_save}%':<7} |"
+                f"{f'{wd_save}%':<7} | {h2c['tokens']:.1f} | {nl['tokens']:.1f} | "
+                f"{f'{tok_save}%':<7} |"
             )
 
         avg_ch_save = round((1 - total_h2c_ch / total_nl_ch) * 100, 1) if total_nl_ch else 0.0
@@ -470,12 +493,16 @@ def generate_final_report(all_model_metrics: list[dict]) -> str:
         total_nl_ch = sum(m["nl"]["chars"] for m in metrics)
         save_tok = round((1 - total_h2c / total_nl) * 100, 1) if total_nl else 0.0
         save_ch = round((1 - total_h2c_ch / total_nl_ch) * 100, 1) if total_nl_ch else 0.0
-        lines.append(f"| {model_name} | {total_h2c:.1f} | {total_nl:.1f} | **{save_tok}%** | {save_ch}% |")
+        lines.append(  # noqa: E501
+            f"| {model_name} | {total_h2c:.1f} | {total_nl:.1f} | **{save_tok}%** | {save_ch}% |"
+        )
 
     lines.append("")
     lines.append("### Osservazioni")
     lines.append("")
-    lines.append("- **NL baseline identico per tutti**: le metriche NL sono pre-calcolate dallo script.")
+    lines.append(  # noqa: E501
+        "- **NL baseline identico per tutti**: le metriche NL sono pre-calcolate dallo script."
+    )
     lines.append("- Il risparmio dipende solo dalla qualità della catena H2C generata dal modello.")
     lines.append("- I modelli che generano catene più compatte ottengono risparmi migliori.")
     lines.append("")
@@ -532,25 +559,28 @@ def cmd_report():
     """Read LLM output from a file (or stdin) and produce the report."""
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("file", nargs="?", default=None, help="File con output LLM (default: stdin)")
+    parser.add_argument(
+        "file", nargs="?", default=None, help="File con output LLM (default: stdin)"
+    )
     parser.add_argument("--model", "-m", default="", help="Model name for the report")
-    parser.add_argument("--save", "-s", default="", help="Save to file (append if model specified)")
+    parser.add_argument(
+        "--save", "-s", default="", help="Save to file (append if model specified)"
+    )
     parser.add_argument("--json", action="store_true", help="JSON output")
     args, _ = parser.parse_known_args(sys.argv[2:])
 
-    if args.file:
-        llm_output = Path(args.file).read_text(encoding="utf-8")
-    else:
-        llm_output = sys.stdin.read()
+    llm_output = Path(args.file).read_text(encoding="utf-8") if args.file else sys.stdin.read()
 
     if not llm_output.strip():
         print("ERROR: Nessun input ricevuto.", file=sys.stderr)
-        print("Usa: python3 conformance/benchmark.py report output_llm.txt --model NOME", file=sys.stderr)
+        msg = "Usa: python3 conformance/benchmark.py report output_llm.txt --model NOME"
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
     if not llm_output.strip():
         print("ERROR: Nessun input ricevuto.", file=sys.stderr)
-        print("Usa: python3 conformance/benchmark.py report output_llm.txt --model NOME", file=sys.stderr)
+        msg = "Usa: python3 conformance/benchmark.py report output_llm.txt --model NOME"
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
     scenarios = extract_nl_references()
@@ -563,7 +593,10 @@ def cmd_report():
 
     if not chains:
         print("ERROR: Nessuna catena H2C trovata nell'output.", file=sys.stderr)
-        print("Assicurati che l'output contenga delimitatori === SCENARIO N: NOME ===", file=sys.stderr)
+        print(  # noqa: E501
+            "Assicurati che l'output contenga delimitatori === SCENARIO N: NOME ===",
+            file=sys.stderr,
+        )
         print()
         print("--- Prime 500 caratteri dell'output ricevuto ---")
         print(llm_output[:500])
@@ -587,10 +620,8 @@ def cmd_report():
             # Check if file exists and has existing model data
             existing = []
             if save_path.exists():
-                try:
+                with contextlib.suppress(json.JSONDecodeError, ValueError):
                     existing = json.loads(save_path.read_text())
-                except (json.JSONDecodeError, ValueError):
-                    pass
             # Append new model data
             existing.append({
                 "model": args.model,
@@ -658,13 +689,13 @@ def cmd_fixtures():
 def main():
     if len(sys.argv) < 2:
         print("Uso:")
-        print("  python3 conformance/benchmark.py data                      # Mostra metriche NL pre-calcolate")
-        print("  python3 conformance/benchmark.py report [file] [opts]      # Analizza output LLM (file o stdin)")
+        print("  python3 conformance/benchmark.py data                      # Mostra metriche NL pre-calcolate")  # noqa: E501
+        print("  python3 conformance/benchmark.py report [file] [opts]      # Analizza output LLM (file o stdin)")  # noqa: E501
         print("    file              File con output LLM (default: stdin)")
         print("    --model NAME      Nome modello da includere nel report")
-        print("    --save FILE       Salva dati JSON (appende se --model è usato)")
+        print("    --save FILE       Salva dati JSON (appende se --model è usato)")  # noqa: E501
         print("    --json            Output JSON per piping")
-        print("  python3 conformance/benchmark.py fixtures                  # NL di riferimento vs fixture del repo (token reali)")
+        print("  python3 conformance/benchmark.py fixtures                  # NL di riferimento vs fixture del repo (token reali)")  # noqa: E501
         print()
         print("Workflow:")
         print("  1. Copia-incolla conformance/benchmark_prompt.md nella chat LLM")

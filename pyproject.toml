@@ -55,5 +55,8 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+"h2c/parser/errors.py" = ["N818"]  # nomi pubblici gia' esportati, rename in F7 (1.0)
+
 [tool.hatch.build.targets.wheel]
 packages = ["h2c"]

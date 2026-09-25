@@ -13,10 +13,8 @@ Grammar:
 
 import dataclasses
 import re
-from typing import List, Optional
+from typing import Optional
 
-from h2c.tokenizer.scanner import tokenize as _tokenize
-from h2c.tokenizer.token import Token, TokenType
 from h2c.parser.ast import (
     Block,
     Field,
@@ -33,9 +31,10 @@ from h2c.parser.errors import (
     H2CParseError,
     InvalidSubtype,
     InvalidType,
-    MalformedBlock,
     UnexpectedToken,
 )
+from h2c.tokenizer.scanner import tokenize as _tokenize
+from h2c.tokenizer.token import Token, TokenType
 
 # Tokens that terminate a field value (nothing left to read for this field).
 _VALUE_TERMINATORS = frozenset({
@@ -79,7 +78,7 @@ class Parser:
     on unexpected tokens, skips forward to the next '[' or EOF.
     """
 
-    def __init__(self, tokens: List[Token]):
+    def __init__(self, tokens: list[Token]):
         self._tokens = tokens
         self._pos = 0
         self.diagnostics: list[Diagnostic] = []
@@ -92,7 +91,7 @@ class Parser:
         Problems the parser recovers from are appended to ``self.diagnostics``
         rather than dropped silently.
         """
-        blocks: List[Block] = []
+        blocks: list[Block] = []
         while self._pos < len(self._tokens):
             tok = self._peek()
             if tok.type == TokenType.EOF:
@@ -155,9 +154,9 @@ class Parser:
 
     # ── field parsing ────────────────────────────────────────────────────
 
-    def _parse_fields(self) -> List[Field]:
+    def _parse_fields(self) -> list[Field]:
         """fields → field ('|' field)*"""
-        fields: List[Field] = []
+        fields: list[Field] = []
         # Parse first field (a block must have at least one field)
         if self._peek_type() in (
             TokenType.STRING, TokenType.TILDE, TokenType.KEY,
@@ -254,17 +253,17 @@ class Parser:
             return SignedIntValue(data=int(tok.value))
 
         # 3. Revision: STRING '~' INTEGER (3-token lookahead)
-        if tok.type == TokenType.STRING:
-            if self._peek_ahead_type(1) == TokenType.TILDE and \
-               self._peek_ahead_type(2) == TokenType.INTEGER:
-                file_tok = self._consume()          # STRING
-                self._consume()                      # TILDE
-                rev_tok = self._consume()            # INTEGER
-                return RevisionValue(
-                    file=file_tok.value,
-                    rev=int(rev_tok.value),
-                )
-            # Not a revision — fall through to string
+        if tok.type == TokenType.STRING and \
+           self._peek_ahead_type(1) == TokenType.TILDE and \
+           self._peek_ahead_type(2) == TokenType.INTEGER:
+            file_tok = self._consume()          # STRING
+            self._consume()                      # TILDE
+            rev_tok = self._consume()            # INTEGER
+            return RevisionValue(
+                file=file_tok.value,
+                rev=int(rev_tok.value),
+            )
+        # Not a revision — fall through to string
 
         # 4. LBRACKET → list
         if tok.type == TokenType.LBRACKET:
@@ -301,7 +300,7 @@ class Parser:
         self._expect(TokenType.LBRACKET)
 
         # Collect all raw tokens between [ and ]
-        raw_parts: List[str] = []
+        raw_parts: list[str] = []
         depth = 1
         while depth > 0 and self._peek_type() != TokenType.EOF:
             t = self._peek()
@@ -321,7 +320,7 @@ class Parser:
             return ListValue(data=[])
 
         elements = joined.split(",")
-        items: List[str] = []
+        items: list[str] = []
         for elem in elements:
             elem = elem.strip()
             if not elem:

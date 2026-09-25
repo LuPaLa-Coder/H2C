@@ -4,6 +4,7 @@ I numeri misurati vivono solo in conformance/Result.md, generato da
 conformance/benchmark.py.
 """
 
+import contextlib
 import re
 from pathlib import Path
 
@@ -82,9 +83,7 @@ def test_cli_stats_output_has_no_savings_wording(capsys, monkeypatch, hello_worl
     f = tmp_path / "c.h2c"
     f.write_text(hello_world_text)
     monkeypatch.setattr("sys.argv", ["h2c", "stats", str(f)])
-    try:
+    with contextlib.suppress(SystemExit):
         main()
-    except SystemExit:
-        pass
     out = capsys.readouterr().out.lower()
     assert "saving" not in out

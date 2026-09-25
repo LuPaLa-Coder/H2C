@@ -1,11 +1,11 @@
 """Tests for H2C Parser (Phase 2)."""
 
-import json
 
 from h2c.parser import parse
 from h2c.parser.ast import (
-    Block, Field, IntegerValue, ListValue, Message, RevisionValue,
-    SignedIntValue, StringValue,
+    IntegerValue,
+    ListValue,
+    StringValue,
 )
 
 

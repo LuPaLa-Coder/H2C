@@ -1,5 +1,5 @@
-from h2c.validator.validator import Validator
-from h2c.validator.result import ValidationResult, ValidationError
+from h2c.validator.result import ValidationError, ValidationResult
 from h2c.validator.rules import BlockSchema
+from h2c.validator.validator import Validator
 
 __all__ = ["Validator", "ValidationResult", "ValidationError", "BlockSchema"]
